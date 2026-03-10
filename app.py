@@ -3,14 +3,14 @@ import pandas as pd
 from openpyxl import load_workbook
 import io
 
-st.title("Generador de Diagnóstico")
+st.title("Bienvenid@ al Generador de InfoEngine")
 
 encuesta_comunidad = st.file_uploader(
-    "Subir encuesta comunidad", type=["xlsx"]
+    "Subir encuesta COMUNIDAD", type=["xlsx"]
 )
 
 encuesta_comercio = st.file_uploader(
-    "Subir encuesta comercio", type=["xlsx"]
+    "Subir encuesta COMERCIO", type=["xlsx"]
 )
 
 if encuesta_comunidad and encuesta_comercio:

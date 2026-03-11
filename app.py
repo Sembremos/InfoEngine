@@ -3,16 +3,14 @@ import pandas as pd
 from openpyxl import load_workbook
 import io
 
-st.title("Generador de Diagnóstico")
+st.title("Generador de info_engine desde Encuesta Comunidad")
 
-archivo_comunidad = st.file_uploader(
-    "Subir archivo comunidad", type=["xlsx"]
-)
+archivo_comunidad = st.file_uploader("Subir archivo comunidad", type=["xlsx"])
 
 
-# -----------------------------
+# --------------------------------------
 # FUNCIONES GENERALES
-# -----------------------------
+# --------------------------------------
 
 def contar_frecuencias(df, columna, orden):
     serie = df[columna].dropna()
@@ -25,83 +23,60 @@ def escribir_lista(ws, columna, fila_inicio, lista):
         ws[f"{columna}{fila_inicio+i}"] = int(valor)
 
 
-def escribir_texto(ws, celda, texto):
-    ws[celda] = texto
-
-
 def limpiar_lista(ws, columna, fila_inicio, cantidad):
     for i in range(cantidad):
         ws[f"{columna}{fila_inicio+i}"] = None
 
 
-# -----------------------------
+def formatear_canton(texto):
+    texto = str(texto).replace("_", " ").title()
+    texto = texto.replace(" Ramon", " Ramón")
+    return texto
+
+
+# --------------------------------------
 # BOTON PRINCIPAL
-# -----------------------------
+# --------------------------------------
 
 if archivo_comunidad:
 
-    if st.button("Generar diagnóstico"):
+    if st.button("Generar info_engine"):
 
         df = pd.read_excel(archivo_comunidad)
 
         wb = load_workbook("plantillas/info_engine.xlsx")
         ws = wb["Hoja1"]
 
-
         # -----------------------------------
         # 1 CANTON
         # -----------------------------------
 
-        canton_raw = df["T"].dropna().iloc[0]
-
-        canton = canton_raw.replace("_", " ").title()
-
-        canton = canton.replace(" Ramon", " Ramón")
-
-        escribir_texto(ws, "B2", canton)
-
+        canton_raw = df["1. Cantón"].dropna().iloc[0]
+        ws["B2"] = formatear_canton(canton_raw)
 
         # -----------------------------------
-        # 2 DISTRITOS LISTA
+        # 2 LISTA DISTRITOS
         # -----------------------------------
 
-        distritos = (
-            df["U"]
-            .dropna()
-            .unique()
-        )
-
-        distritos = sorted(distritos)
+        distritos = sorted(df["2. Distrito:"].dropna().unique())
 
         if len(distritos) == 16:
 
             for i, d in enumerate(distritos):
                 ws[f"A{8+i}"] = d
 
-        else:
+            conteo = df["2. Distrito:"].value_counts()
+            frecuencias = [conteo.get(d, 0) for d in distritos]
 
-            limpiar_lista(ws,"A",8,16)
-
-
-        # -----------------------------------
-        # 3 FRECUENCIA DISTRITOS
-        # -----------------------------------
-
-        conteo = df["U"].value_counts()
-
-        if len(distritos) == 16:
-
-            frecuencias = [conteo.get(d,0) for d in distritos]
-
-            escribir_lista(ws,"E",8,frecuencias)
+            escribir_lista(ws, "E", 8, frecuencias)
 
         else:
 
-            limpiar_lista(ws,"E",8,16)
-
+            limpiar_lista(ws, "A", 8, 16)
+            limpiar_lista(ws, "E", 8, 16)
 
         # -----------------------------------
-        # 4 RELACION CON ZONA
+        # 4 RELACION ZONA
         # -----------------------------------
 
         orden = [
@@ -111,13 +86,12 @@ if archivo_comunidad:
             "vivo_en_la_zona"
         ]
 
-        frec = contar_frecuencias(df,"Y",orden)
+        frec = contar_frecuencias(df, "6. ¿Cuál es su relación con la zona?", orden)
 
-        escribir_lista(ws,"I",8,frec)
-
+        escribir_lista(ws, "I", 8, frec)
 
         # -----------------------------------
-        # 5 EDADES
+        # 5 EDAD
         # -----------------------------------
 
         orden = [
@@ -128,10 +102,13 @@ if archivo_comunidad:
             "Vacio"
         ]
 
-        frec = contar_frecuencias(df,"V",orden)
+        frec = contar_frecuencias(
+            df,
+            "3. Edad (en años cumplidos): marque una categoría que incluya su edad.",
+            orden
+        )
 
-        escribir_lista(ws,"D",29,frec)
-
+        escribir_lista(ws, "D", 29, frec)
 
         # -----------------------------------
         # 6 ESCOLARIDAD
@@ -148,10 +125,9 @@ if archivo_comunidad:
             "universidad_incompleta"
         ]
 
-        frec = contar_frecuencias(df,"X",orden)
+        frec = contar_frecuencias(df, "5. Escolaridad:", orden)
 
-        escribir_lista(ws,"D",39,frec)
-
+        escribir_lista(ws, "D", 39, frec)
 
         # -----------------------------------
         # 7 GENERO
@@ -163,13 +139,16 @@ if archivo_comunidad:
             "persona_no_binaria"
         ]
 
-        frec = contar_frecuencias(df,"W",orden)
+        frec = contar_frecuencias(
+            df,
+            "4. ¿Con cuál de estas opciones se identifica?",
+            orden
+        )
 
-        escribir_lista(ws,"D",52,frec)
-
+        escribir_lista(ws, "D", 52, frec)
 
         # -----------------------------------
-        # 8 SEGURIDAD ZONA
+        # 8 SEGURIDAD DISTRITO
         # -----------------------------------
 
         orden = [
@@ -180,13 +159,16 @@ if archivo_comunidad:
             "muy_seguro"
         ]
 
-        frec = contar_frecuencias(df,"AA",orden)
+        frec = contar_frecuencias(
+            df,
+            "7. ¿Qué tan seguro percibe usted el distrito donde reside o transita?",
+            orden
+        )
 
-        escribir_lista(ws,"C",283,frec)
-
+        escribir_lista(ws, "C", 283, frec)
 
         # -----------------------------------
-        # 9 COMPARACION AÑO
+        # 9 CAMBIO SEGURIDAD
         # -----------------------------------
 
         orden = [
@@ -197,16 +179,32 @@ if archivo_comunidad:
             "mucho_mas_seguro"
         ]
 
-        frec = contar_frecuencias(df,"AD",orden)
+        frec = contar_frecuencias(
+            df,
+            "8. En comparación con los 12 meses anteriores, ¿cómo percibe que ha cambiado la seguridad en este distrito?",
+            orden
+        )
 
-        escribir_lista(ws,"C",291,frec)
-
+        escribir_lista(ws, "C", 291, frec)
 
         # -----------------------------------
-        # 10 LUGARES INSEGUROS
+        # 10 SEGURIDAD LUGARES
         # -----------------------------------
 
-        columnas = list(df.loc[:, "AF":"AQ"].columns)
+        columnas = [
+            "seg_discotecas_bares",
+            "seg_espacios_recreativos",
+            "seg_lugar_residencia",
+            "seg_paradas_estaciones",
+            "seg_puentes_peatonales",
+            "seg_transporte_publico",
+            "seg_zona_bancaria",
+            "seg_zona_comercio",
+            "seg_zonas_residenciales",
+            "seg_zonas_francas",
+            "seg_lugares_turisticos",
+            "seg_centros_educativos"
+        ]
 
         orden = [
             "muy_inseguro",
@@ -217,23 +215,19 @@ if archivo_comunidad:
             "no_aplica"
         ]
 
-        destinos = ["B","D","F","H","J","L"]
+        columnas_destino = ["B", "D", "F", "H", "J", "L"]
 
-        for op, col in zip(orden, destinos):
+        for opcion, col_excel in zip(orden, columnas_destino):
 
             resultados = []
 
             for c in columnas:
+                resultados.append((df[c] == opcion).sum())
 
-                resultados.append(
-                    (df[c]==op).sum()
-                )
-
-            escribir_lista(ws,col,300,resultados)
-
+            escribir_lista(ws, col_excel, 300, resultados)
 
         # -----------------------------------
-        # 11 VICTIMA
+        # 11 VICTIMIZACION
         # -----------------------------------
 
         orden = [
@@ -242,13 +236,16 @@ if archivo_comunidad:
             "si_he_sido_víctima_y_si_denuncie"
         ]
 
-        frec = contar_frecuencias(df,"BZ",orden)
+        frec = contar_frecuencias(
+            df,
+            "30. Durante los últimos 12 meses, ¿usted o algún miembro de su hogar fue afectado por algún delito?",
+            orden
+        )
 
-        escribir_lista(ws,"D",314,frec)
-
+        escribir_lista(ws, "D", 314, frec)
 
         # -----------------------------------
-        # 12 NO DENUNCIA
+        # 12 MOTIVOS NO DENUNCIA
         # -----------------------------------
 
         orden = [
@@ -262,13 +259,16 @@ if archivo_comunidad:
             "Desconfianza en las autoridades o en el proceso de denuncia"
         ]
 
-        frec = contar_frecuencias(df,"CF",orden)
+        frec = contar_frecuencias(
+            df,
+            "30.2 En caso de NO haber realizado la denuncia, indique ¿cuál o cuáles fueron el motivo?",
+            orden
+        )
 
-        escribir_lista(ws,"D",322,frec)
-
+        escribir_lista(ws, "D", 322, frec)
 
         # -----------------------------------
-        # 13 HORARIOS
+        # 13 HORARIO DELITO
         # -----------------------------------
 
         orden = [
@@ -283,13 +283,16 @@ if archivo_comunidad:
             "Desconocido"
         ]
 
-        frec = contar_frecuencias(df,"CH",orden)
+        frec = contar_frecuencias(
+            df,
+            "30.3 ¿Tiene conocimiento sobre el horario en el cual se presentó el hecho o situación que le afectó a usted o un familiar?",
+            orden
+        )
 
-        escribir_lista(ws,"D",336,frec)
-
+        escribir_lista(ws, "D", 336, frec)
 
         # -----------------------------------
-        # 14 METODOLOGIA
+        # 14 METODOLOGIA DELITO
         # -----------------------------------
 
         orden = [
@@ -305,19 +308,16 @@ if archivo_comunidad:
             "Otro"
         ]
 
-        frec = contar_frecuencias(df,"CI",orden)
+        frec = contar_frecuencias(
+            df,
+            "30.4 ¿Cuál fue la forma o modo en que ocurrió la situación que afectó a usted o a algún miembro de su hogar?",
+            orden
+        )
 
-        escribir_lista(ws,"D",350,frec)
-
-
-        # -----------------------------------
-        # GUARDAR ARCHIVO
-        # -----------------------------------
+        escribir_lista(ws, "D", 350, frec)
 
         archivo = io.BytesIO()
-
         wb.save(archivo)
-
         archivo.seek(0)
 
         st.download_button(

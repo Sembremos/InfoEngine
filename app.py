@@ -51,7 +51,7 @@ if archivo_comunidad:
         # 1 CANTON
         # -----------------------------------
 
-        canton_raw = df["1. Cantón"].dropna().iloc[0]
+        canton_raw = df["1. Cantón:"].dropna().iloc[0]
         ws["B2"] = formatear_canton(canton_raw)
 
         # -----------------------------------

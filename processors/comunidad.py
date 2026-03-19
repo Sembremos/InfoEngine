@@ -185,11 +185,11 @@ def procesar_comunidad(archivo_comunidad):
     # -----------------------------------
 
     orden = [
-        "mucho_menos_seguro",
-        "menos_seguro",
-        "se_mantiene_igual",
-        "mas_seguro",
-        "mucho_mas_seguro"
+        "mucho_menos_seguro_1",
+        "menos_seguro_2",
+        "se_mantiene_igual_3",
+        "mas_seguro_4",
+        "mucho_mas_seguro_5"
     ]
 
     frec = contar_frecuencias(
@@ -220,11 +220,11 @@ def procesar_comunidad(archivo_comunidad):
     ]
 
     orden = [
-        "muy_inseguro",
-        "inseguro",
-        "ni_seguro_ni_inseguro",
-        "seguro",
-        "muy_seguro",
+        "muy_inseguro_1",
+        "inseguro_2",
+        "ni_seguro_ni_inseguro_3",
+        "seguro_4",
+        "muy_seguro_5",
         "no_aplica"
     ]
 
@@ -245,8 +245,8 @@ def procesar_comunidad(archivo_comunidad):
 
     orden = [
         "no",
-        "si_he_sido_víctima_pero_no_denuncie",
-        "si_he_sido_víctima_y_si_denuncie"
+        "si_pero_no_denuncie",
+        "si_y_denuncie"
     ]
 
     frec = contar_frecuencias(
@@ -260,77 +260,105 @@ def procesar_comunidad(archivo_comunidad):
     # -----------------------------------
     # 12 MOTIVOS NO DENUNCIA
     # -----------------------------------
-
+    
     orden = [
-        "Distancia",
-        "Miedo a represalias.",
-        "Falta de respuesta oportuna.",
-        "Complejidad al colocar la denuncia.",
-        "Desconocimiento de dónde colocar la denuncia.",
-        "El Policía me dijo que era mejor no denunciar.",
-        "Falta de tiempo para colocar la denuncia",
-        "Desconfianza en las autoridades o en el proceso de denuncia"
+        "distancia_o_dificultad_de_acceso_a_oficinas_para_denunciar",
+        "miedo_a_represalias",
+        "falta_de_respuesta_o_seguimiento_en_denuncias_anteriores",
+        "complejidad_al_colocar_la_denuncia",
+        "desconocimiento_de_donde_colocar_la_denuncia",
+        "el_policia_me_dijo_que_era_mejor_no_denunciar",
+        "falta_de_tiempo_para_colocar_la_denuncia",
+        "desconfianza_en_las_autoridades_o_en_el_proceso_de_denuncia",
+        "otro_motivo"
     ]
-
-    frec = contar_frecuencias(
-        df,
-        "30.2 En caso de NO haber realizado la denuncia, indique ¿cuál o cuáles fueron el motivo?",
-        orden
-    )
-
+    
+    col = "30.2 En caso de NO haber realizado la denuncia, indique ¿cuál o cuáles fueron el motivo?"
+    
+    serie = df[col].dropna().astype(str)
+    
+    # separo las respuestas
+    todas = []
+    
+    for valor in serie:
+        partes = [x.strip().lower() for x in valor.split(",")]
+        todas.extend(partes)
+    
+    # contar frecuencias
+    conteo = pd.Series(todas).value_counts()
+    
+    # construir lista final en orden
+    frec = [conteo.get(opcion, 0) for opcion in orden]
+    
     escribir_lista(ws, "D", 322, frec)
 
     # -----------------------------------
     # 13 HORARIO DELITO
     # -----------------------------------
-
+    
     orden = [
-        "00:00-02:59 a.m",
-        "03:00-05:59 a.m",
-        "06:00-08:59 a.m",
-        "09:00-11:59 a.m",
-        "12:00-14:59 p.m",
-        "15:00-17:59 p.m",
-        "18:00-20:59 p.m",
-        "21:00-23:59 p.m",
-        "Desconocido"
+        "00_00_02_59_madrugada",
+        "03_00_05_59_madrugada",
+        "06_00_08_59_manana",
+        "09_00_11_59_manana",
+        "12_00_14_59_mediodia_tarde",
+        "15_00_17_59_tarde",
+        "18_00_20_59_noche",
+        "21_00_23_59_noche",
+        "desconocido"
     ]
-
-    frec = contar_frecuencias(
-        df,
-        "30.3 ¿Tiene conocimiento sobre el horario en el cual se presentó el hecho o situación que le afectó a usted o un familiar?",
-        orden
-    )
-
+    
+    col = "30.3 ¿Tiene conocimiento sobre el horario en el cual se presentó el hecho o situación que le afectó a usted o un familiar?"
+    
+    serie = df[col].dropna().astype(str)
+    
+    # separar todas las respuestas
+    todas = []
+    
+    for valor in serie:
+        partes = [x.strip().lower() for x in valor.split(",")]
+        todas.extend(partes)
+    
+    # contar frecuencias
+    conteo = pd.Series(todas).value_counts()
+    
+    # construir lista final
+    frec = [conteo.get(opcion, 0) for opcion in orden]
+    
     escribir_lista(ws, "D", 336, frec)
 
     # -----------------------------------
     # 14 METODOLOGIA DELITO
     # -----------------------------------
-
+    
     orden = [
-        "Arma blanca (cuchillo, machete, tijeras).",
-        "Arma de fuego.",
-        "Amenazas",
-        "Arrebato",
-        "Boquete",
-        "Ganzúa (pata de chancho)",
-        "Engaño",
-        "Escalamiento",
-        "No sé",
-        "Otro"
+        "arma_blanca_cuchillo_machete_tijeras",
+        "arma_de_fuego",
+        "amenazas_o_intimidacion",
+        "arrebato_le_quitaron_un_objeto_de_forma_rapida_o_sorpresiva",
+        "boquete_ingreso_mediante_apertura_de_huecos_en_paredes_techos_o_estructuras",
+        "ganzua_pata_de_chancho_llaves_falsas_u_objetos_similares",
+        "engano_mediante_mentiras_falsas_ofertas_o_distraccion",
+        "escalamiento_ingreso_trepando_muros_rejas_o_techos",
+        "no_sabe_no_recuerda",
+        "otro"
     ]
-
-    frec = contar_frecuencias(
-        df,
-        "30.4 ¿Cuál fue la forma o modo en que ocurrió la situación que afectó a usted o a algún miembro de su hogar?",
-        orden
-    )
-
+    
+    col = "30.4 ¿Cuál fue la forma o modo en que ocurrió la situación que afectó a usted o a algún miembro de su hogar?"
+    
+    serie = df[col].dropna().astype(str)
+    
+    # separar todas las respuestas
+    todas = []
+    
+    for valor in serie:
+        partes = [x.strip().lower() for x in valor.split(",")]
+        todas.extend(partes)
+    
+    # contar frecuencias
+    conteo = pd.Series(todas).value_counts()
+    
+    # construir lista final
+    frec = [conteo.get(opcion, 0) for opcion in orden]
+    
     escribir_lista(ws, "D", 350, frec)
-
-    archivo = io.BytesIO()
-    wb.save(archivo)
-    archivo.seek(0)
-
-    return archivo

@@ -17,10 +17,13 @@ if archivo:
     if st.button("Generar info_engine"):
 
         if tipo_archivo == "Comunidad":
-            output = procesar_comunidad(archivo).getvalue()
+            output = procesar_comunidad(archivo)
 
+        if output is not None:
             st.download_button(
                 "Descargar archivo generado",
                 output,
                 file_name="info_engine_resultado.xlsx"
             )
+        else:
+            st.error("Error generando el archivo")

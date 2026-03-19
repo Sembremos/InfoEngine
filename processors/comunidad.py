@@ -288,7 +288,7 @@ def procesar_comunidad(archivo_comunidad):
     conteo = pd.Series(todas).value_counts()
     
     # construir lista final en orden
-    frec = [conteo.get(opcion, 0) for opcion in orden]
+    frec = [int(conteo.get(opcion, 0)) for opcion in orden]
     
     escribir_lista(ws, "D", 322, frec)
 
@@ -323,7 +323,7 @@ def procesar_comunidad(archivo_comunidad):
     conteo = pd.Series(todas).value_counts()
     
     # construir lista final
-    frec = [conteo.get(opcion, 0) for opcion in orden]
+    frec = [int(conteo.get(opcion, 0)) for opcion in orden]
     
     escribir_lista(ws, "D", 336, frec)
 
@@ -359,6 +359,13 @@ def procesar_comunidad(archivo_comunidad):
     conteo = pd.Series(todas).value_counts()
     
     # construir lista final
-    frec = [conteo.get(opcion, 0) for opcion in orden]
+    frec = [int(conteo.get(opcion, 0)) for opcion in orden]
     
     escribir_lista(ws, "D", 350, frec)
+
+
+    archivo = io.BytesIO()
+    wb.save(archivo)
+    archivo.seek(0)
+    
+    return archivo

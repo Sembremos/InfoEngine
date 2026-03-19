@@ -17,7 +17,7 @@ if archivo:
     if st.button("Generar info_engine"):
 
         if tipo_archivo == "Comunidad":
-            output = procesar_comunidad(archivo)
+            output = procesar_comunidad(archivo).getvalue()
 
         st.download_button(
             "Descargar archivo generado",

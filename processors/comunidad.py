@@ -8,9 +8,21 @@ import io
 # --------------------------------------
 
 def contar_frecuencias(df, columna, orden):
-    serie = df[columna].dropna()
-    conteo = serie.value_counts()
-    return [conteo.get(opcion, 0) for opcion in orden]
+    serie = df[columna]
+
+    # normalizar datos (sin eliminar vacíos)
+    serie_limpia = serie.dropna().astype(str).str.strip().str.lower()
+    conteo = serie_limpia.value_counts()
+
+    resultado = []
+
+    for opcion in orden:
+        if opcion.strip().lower() == "vacio":
+            resultado.append(serie.isna().sum())
+        else:
+            resultado.append(conteo.get(opcion.strip().lower(), 0))
+
+    return resultado
 
 
 def escribir_lista(ws, columna, fila_inicio, lista):
@@ -96,10 +108,10 @@ def procesar_comunidad(archivo_comunidad):
     # -----------------------------------
 
     orden = [
-        "De 18 a 29",
-        "De 30 a 44",
-        "De 45 a 64",
-        "65 años o más",
+        "18_a_29_anos",
+        "30_a_44_anos",
+        "45_a_64_anos",
+        "65_anos_o_mas",
         "Vacio"
     ]
 

@@ -19,8 +19,8 @@ if archivo:
         if tipo_archivo == "Comunidad":
             output = procesar_comunidad(archivo).getvalue()
 
-        st.download_button(
-            "Descargar archivo generado",
-            output,
-            file_name="info_engine_resultado.xlsx"
-        )
+            st.download_button(
+                "Descargar archivo generado",
+                output,
+                file_name="info_engine_resultado.xlsx"
+            )

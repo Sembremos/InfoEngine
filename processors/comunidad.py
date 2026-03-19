@@ -50,23 +50,31 @@ def procesar_comunidad(archivo_comunidad):
     # -----------------------------------
     # 2 LISTA DISTRITOS
     # -----------------------------------
-
+    
     distritos = sorted(df["2. Distrito:"].dropna().unique())
-
-    if len(distritos) == 16:
-
-        for i, d in enumerate(distritos):
-            ws[f"A{8+i}"] = d
-
-        conteo = df["2. Distrito:"].value_counts()
-        frecuencias = [conteo.get(d, 0) for d in distritos]
-
-        escribir_lista(ws, "E", 8, frecuencias)
-
-    else:
-
-        limpiar_lista(ws, "A", 8, 16)
-        limpiar_lista(ws, "E", 8, 16)
+    
+    # limitar a máximo 16
+    distritos = distritos[:16]
+    
+    # escribir distritos
+    for i in range(16):
+        if i < len(distritos):
+            ws[f"A{8+i}"] = distritos[i]
+        else:
+            ws[f"A{8+i}"] = None
+    
+    # conteo
+    conteo = df["2. Distrito:"].value_counts()
+    
+    frecuencias = []
+    for d in distritos:
+        frecuencias.append(conteo.get(d, 0))
+    
+    # completar hasta 16
+    while len(frecuencias) < 16:
+        frecuencias.append(0)
+    
+    escribir_lista(ws, "E", 8, frecuencias)
 
     # -----------------------------------
     # 4 RELACION ZONA

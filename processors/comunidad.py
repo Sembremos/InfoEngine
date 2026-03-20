@@ -47,15 +47,10 @@ def formatear_canton(texto):
 
 def procesar_comunidad(archivo_comunidad):
 
-    df = pd.read_excel(archivo_comunidad, header=0)
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    df = pd.read_excel(archivo_comunidad)
 
     import streamlit as st
     st.write(df.columns.tolist())
-
-    df.columns = df.columns.str.strip()
-    df.columns = df.columns.str.replace("\n", " ")
-    df.columns = df.columns.str.replace("  ", " ")
 
     wb = load_workbook("plantillas/info_engine.xlsx")
     ws = wb["Hoja1"]

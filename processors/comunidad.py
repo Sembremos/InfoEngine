@@ -47,7 +47,8 @@ def formatear_canton(texto):
 
 def procesar_comunidad(archivo_comunidad):
 
-    df = pd.read_excel(archivo_comunidad)
+    df = pd.read_excel(archivo_comunidad, header=0)
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
     import streamlit as st
     st.write(df.columns.tolist())

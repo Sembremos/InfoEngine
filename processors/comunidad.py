@@ -49,6 +49,10 @@ def procesar_comunidad(archivo_comunidad):
 
     df = pd.read_excel(archivo_comunidad)
 
+    df.columns = df.columns.str.strip()
+    df.columns = df.columns.str.replace("\n", " ")
+    df.columns = df.columns.str.replace("  ", " ")
+
     wb = load_workbook("plantillas/info_engine.xlsx")
     ws = wb["Hoja1"]
 

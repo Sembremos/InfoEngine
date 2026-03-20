@@ -49,6 +49,9 @@ def procesar_comunidad(archivo_comunidad):
 
     df = pd.read_excel(archivo_comunidad)
 
+    import streamlit as st
+    st.write(df.columns.tolist())
+
     df.columns = df.columns.str.strip()
     df.columns = df.columns.str.replace("\n", " ")
     df.columns = df.columns.str.replace("  ", " ")
@@ -397,7 +400,7 @@ def procesar_comunidad(archivo_comunidad):
     # 16 PROFESIONALIDAD FUERZA PUBLICA
     # -----------------------------------
     
-    col = "33. En una escala del 1 al 10, donde 1 es 'Nada profesional' y 10 es 'Muy profesional', ¿cómo calificaría la profesionalidad de la Fuerza Pública en su distrito?"
+    col = [c for c in df.columns if "profesionalidad de la fuerza pública" in c.lower()][0]
     
     # convertir a número
     serie = pd.to_numeric(df[col], errors='coerce')

@@ -363,6 +363,104 @@ def procesar_comunidad(archivo_comunidad):
     
     escribir_lista(ws, "D", 350, frec)
 
+    # -----------------------------------
+    # 15 CONFIANZA EN FUERZA PUBLICA
+    # -----------------------------------
+    
+    col = "32. ¿Cuál es el nivel de confianza en la policía de la Fuerza Pública de Costa Rica de su comunidad?"
+    
+    # convertir a número (por si viene como texto)
+    serie = pd.to_numeric(df[col], errors='coerce')
+    
+    # conteos por rango
+    ninguna_confianza = ((serie >= 1) & (serie <= 2)).sum()
+    poca_confianza = ((serie >= 3) & (serie <= 4)).sum()
+    confiable = ((serie >= 5) & (serie <= 6)).sum()
+    confianza_razonable = ((serie >= 7) & (serie <= 8)).sum()
+    mucha_confianza = ((serie >= 9) & (serie <= 10)).sum()
+    
+    frec = [
+        int(ninguna_confianza),
+        int(poca_confianza),
+        int(confiable),
+        int(confianza_razonable),
+        int(mucha_confianza)
+    ]
+    
+    escribir_lista(ws, "D", 363, frec)
+
+    # -----------------------------------
+    # 16 PROFESIONALIDAD FUERZA PUBLICA
+    # -----------------------------------
+    
+    col = "33. En una escala del 1 al 10, donde 1 es 'Nada profesional' y 10 es 'Muy profesional', ¿cómo calificaría la profesionalidad de la Fuerza Pública en su distrito?"
+    
+    # convertir a número
+    serie = pd.to_numeric(df[col], errors='coerce')
+    
+    # rangos
+    nada_profesional = ((serie >= 1) & (serie <= 3)).sum()
+    profesional = ((serie >= 4) & (serie <= 7)).sum()
+    muy_profesional = ((serie >= 8) & (serie <= 10)).sum()
+    
+    frec = [
+        int(nada_profesional),
+        int(profesional),
+        int(muy_profesional)
+    ]
+    
+    escribir_lista(ws, "D", 373, frec)
+
+    # -----------------------------------
+    # 17 IDENTIFICACION POLICIAS
+    # -----------------------------------
+    
+    orden = [
+        "no",
+        "si"
+    ]
+    
+    frec = contar_frecuencias(
+        df,
+        "31. ¿Identifica usted a los policías de la Fuerza Pública de Costa Rica en su comunidad?",
+        orden
+    )
+    
+    escribir_lista(ws, "D", 381, frec)
+
+    # -----------------------------------
+    # 18 INTERACCION CON POLICIA
+    # -----------------------------------
+    
+    orden = [
+        "solicitud_de_ayuda_o_auxilio",
+        "atencion_relacionada_con_una_denuncia",
+        "atencion_cordial_o_preventiva_durante_un_patrullaje",
+        "fui_abordado_o_registrado_para_identificacion",
+        "fui_objeto_de_una_infraccion_o_conflicto",
+        "evento_preventivos_civico_policial_reunion_comunitaria",
+        "otra_(especifique)"
+    ]
+    
+    col = "31. ¿Identifica usted a los policías de la Fuerza Pública de Costa Rica en su comunidad?"
+    
+    serie = df[col].dropna().astype(str)
+    
+    # separar respuestas múltiples
+    todas = []
+    
+    for valor in serie:
+        partes = [x.strip().lower() for x in valor.split(",")]
+        todas.extend(partes)
+    
+    # contar frecuencias
+    conteo = pd.Series(todas).value_counts()
+    
+    # construir lista final en orden
+    frec = [int(conteo.get(opcion, 0)) for opcion in orden]
+    
+    escribir_lista(ws, "D", 386, frec)
+#___________________FINAL__________________
 
     archivo = io.BytesIO()
     wb.save(archivo)

@@ -27,10 +27,10 @@ def contar_frecuencias(df, columna, orden):
 
 def escribir_lista(ws, columna, fila_inicio, lista):
     for i, valor in enumerate(lista):
-        if pd.isna(valor):
-            ws[f"{columna}{fila_inicio+i}"] = 0
-        else:
+        try:
             ws[f"{columna}{fila_inicio+i}"] = int(valor)
+        except:
+            ws[f"{columna}{fila_inicio+i}"] = 0
 
 
 def limpiar_lista(ws, columna, fila_inicio, cantidad):

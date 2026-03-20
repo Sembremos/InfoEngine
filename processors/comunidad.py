@@ -428,7 +428,7 @@ def procesar_comunidad(archivo_comunidad):
     
     escribir_lista(ws, "D", 381, frec)
 
-    # -----------------------------------
+   # -----------------------------------
     # 18 INTERACCION CON POLICIA
     # -----------------------------------
     
@@ -442,7 +442,7 @@ def procesar_comunidad(archivo_comunidad):
         "otra_(especifique)"
     ]
     
-    col = "31. ¿Identifica usted a los policías de la Fuerza Pública de Costa Rica en su comunidad?"
+    col = "31.1 ¿Cuáles de los siguientes tipos de atención ha tenido?"
     
     serie = df[col].dropna().astype(str)
     
@@ -456,8 +456,16 @@ def procesar_comunidad(archivo_comunidad):
     # contar frecuencias
     conteo = pd.Series(todas).value_counts()
     
-    # construir lista final en orden
-    frec = [int(conteo.get(opcion, 0)) for opcion in orden]
+    # construir lista final en orden (incluye manejo de "otro")
+    frec = []
+    
+    for opcion in orden:
+        if opcion == "otra_(especifique)":
+            valor = sum(conteo.get(x, 0) for x in conteo.index if "otra" in x)
+        else:
+            valor = conteo.get(opcion, 0)
+    
+        frec.append(int(valor))
     
     escribir_lista(ws, "D", 386, frec)
 #___________________FINAL__________________

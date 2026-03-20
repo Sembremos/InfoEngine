@@ -370,7 +370,7 @@ def procesar_comunidad(archivo_comunidad):
     # 15 CONFIANZA EN FUERZA PUBLICA
     # -----------------------------------
     
-    col = "32. ¿Cuál es el nivel de confianza en la policía de la Fuerza Pública de Costa Rica de su comunidad?"
+    col = [c for c in df.columns if "nivel de confianza" in c.lower()][0]
     
     # convertir a número (por si viene como texto)
     serie = pd.to_numeric(df[col], errors='coerce')

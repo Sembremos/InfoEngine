@@ -4,28 +4,24 @@ from processors.comercio import procesar_comercio
 
 st.title("Generador de info_engine")
 
-tipo_archivo = st.selectbox(
-    "Seleccione el tipo de archivo",
-    ["Comunidad", "Comercio"]
-)
+archivo_comunidad = st.file_uploader("Subir archivo Comunidad", type=["xlsx"])
+archivo_comercio = st.file_uploader("Subir archivo Comercio", type=["xlsx"])
 
-archivo = st.file_uploader("Subir archivo Excel", type=["xlsx"])
+if st.button("Generar info_engine"):
 
-if archivo:
+    if not archivo_comunidad or not archivo_comercio:
+        st.error("Debe subir ambos archivos")
+    else:
+        try:
+            output_comunidad = procesar_comunidad(archivo_comunidad)
+            output_comercio = procesar_comercio(archivo_comercio)
 
-    if st.button("Generar info_engine"):
-
-        if tipo_archivo == "Comunidad":
-            output = procesar_comunidad(archivo)
-
-        elif tipo_archivo == "Comercio":
-            output = procesar_comercio(archivo)
-
-        if output is not None:
+            # usar el último (ambos escriben sobre la misma plantilla)
             st.download_button(
                 "Descargar archivo generado",
-                output,
+                output_comercio,
                 file_name="info_engine_resultado.xlsx"
             )
-        else:
-            st.error("Error generando el archivo")
+
+        except Exception as e:
+            st.error(f"Error: {e}")

@@ -1,11 +1,15 @@
 import streamlit as st
+import pandas as pd
+from openpyxl import load_workbook
+import io
+
 from processors.comunidad import procesar_comunidad
 from processors.comercio import procesar_comercio
 
 st.title("Generador de info_engine")
 
-archivo_comunidad = st.file_uploader("Subir archivo Comunidad", type=["xlsx"])
-archivo_comercio = st.file_uploader("Subir archivo Comercio", type=["xlsx"])
+archivo_comunidad = st.file_uploader("Subir Comunidad", type=["xlsx"])
+archivo_comercio = st.file_uploader("Subir Comercio", type=["xlsx"])
 
 if st.button("Generar info_engine"):
 
@@ -13,13 +17,25 @@ if st.button("Generar info_engine"):
         st.error("Debe subir ambos archivos")
     else:
         try:
-            output_comunidad = procesar_comunidad(archivo_comunidad)
-            output_comercio = procesar_comercio(archivo_comercio)
+            # leer datos
+            df_comunidad = pd.read_excel(archivo_comunidad)
+            df_comercio = pd.read_excel(archivo_comercio)
 
-            # usar el último (ambos escriben sobre la misma plantilla)
+            # abrir UNA sola plantilla
+            wb = load_workbook("plantillas/info_engine.xlsx")
+
+            # procesar ambos sobre el mismo archivo
+            procesar_comunidad(df_comunidad, wb)
+            procesar_comercio(df_comercio, wb)
+
+            # guardar resultado final
+            archivo = io.BytesIO()
+            wb.save(archivo)
+            archivo.seek(0)
+
             st.download_button(
                 "Descargar archivo generado",
-                output_comercio,
+                archivo,
                 file_name="info_engine_resultado.xlsx"
             )
 

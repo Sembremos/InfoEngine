@@ -1,16 +1,15 @@
 import streamlit as st
 from processors.comunidad import procesar_comunidad
+from processors.comercio import procesar_comercio
 
 st.title("Generador de info_engine")
 
-# Preparado para múltiples archivos en el futuro
 tipo_archivo = st.selectbox(
     "Seleccione el tipo de archivo",
-    ["Comunidad"]  # luego aquí agregas más
+    ["Comunidad", "Comercio"]
 )
 
 archivo = st.file_uploader("Subir archivo Excel", type=["xlsx"])
-
 
 if archivo:
 
@@ -18,6 +17,9 @@ if archivo:
 
         if tipo_archivo == "Comunidad":
             output = procesar_comunidad(archivo)
+
+        elif tipo_archivo == "Comercio":
+            output = procesar_comercio(archivo)
 
         if output is not None:
             st.download_button(

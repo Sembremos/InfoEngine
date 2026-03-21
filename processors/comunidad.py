@@ -140,8 +140,8 @@ def procesar_comunidad(archivo_comunidad):
         "secundaria_completa",
         "secundaria_incompleta",
         "tecnico",
-        "Universidad_completa",
-        "universidad_incompleta"
+        "universitaria_completa",
+        "universitaria_incompleta"
     ]
 
     frec = contar_frecuencias(df, "5. Escolaridad:", orden)

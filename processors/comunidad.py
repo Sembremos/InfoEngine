@@ -48,14 +48,7 @@ def formatear_canton(texto):
 # FUNCION PRINCIPAL
 # --------------------------------------
 
-def procesar_comunidad(archivo_comunidad):
-
-    df = pd.read_excel(archivo_comunidad)
-
-    import streamlit as st
-    st.write(df.columns.tolist())
-
-    wb = load_workbook("plantillas/info_engine.xlsx")
+def procesar_comunidad(df, wb):
     ws = wb["Hoja1"]
 
     # -----------------------------------

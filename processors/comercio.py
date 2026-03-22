@@ -29,11 +29,7 @@ def escribir_lista(ws, columna, fila_inicio, lista):
             ws[f"{columna}{fila_inicio+i}"] = 0
 
 
-def procesar_comercio(archivo):
-
-    df = pd.read_excel(archivo)
-
-    wb = load_workbook("plantillas/info_engine.xlsx")
+def procesar_comercio(df, wb): 
     ws = wb["Hoja1"]
 
     # 1 DISTRITOS

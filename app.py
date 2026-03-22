@@ -5,16 +5,18 @@ import io
 
 from processors.comunidad import procesar_comunidad
 from processors.comercio import procesar_comercio
+from processors.estadistica import procesar_estadistica
 
 st.title("Generador de info_engine")
 
 archivo_comunidad = st.file_uploader("Subir Comunidad", type=["xlsx"])
 archivo_comercio = st.file_uploader("Subir Comercio", type=["xlsx"])
+archivo_estadistica = st.file_uploader("Subir Estadística", type=["xlsx"])
 
 if st.button("Generar info_engine"):
 
-    if not archivo_comunidad or not archivo_comercio:
-        st.error("Debe subir ambos archivos")
+    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica:
+        st.error("Debe subir los tres archivos")
     else:
         try:
             # leer datos
@@ -24,9 +26,10 @@ if st.button("Generar info_engine"):
             # abrir UNA sola plantilla
             wb = load_workbook("plantillas/info_engine.xlsx")
 
-            # procesar ambos sobre el mismo archivo
+            # procesar
             procesar_comunidad(df_comunidad, wb)
             procesar_comercio(df_comercio, wb)
+            procesar_estadistica(archivo_estadistica, wb)
 
             # guardar resultado final
             archivo = io.BytesIO()

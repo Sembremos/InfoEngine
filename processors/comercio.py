@@ -33,14 +33,29 @@ def procesar_comercio(df, wb):
     ws = wb["Hoja1"]
 
     # 1 DISTRITOS
-    distritos = sorted(df["2. Distrito:"].dropna().unique())
-    conteo = df["2. Distrito:"].value_counts()
-    frec = [conteo.get(d, 0) for d in distritos]
-
-    while len(frec) < 16:
-        frec.append(0)
-
-    escribir_lista(ws, "D", 8, frec[:16])
+    # leer distritos desde Excel (columna A)
+    distritos_excel = []
+    
+    for i in range(16):
+        valor = ws[f"A{8+i}"].value
+        if valor:
+            distritos_excel.append(str(valor).strip().lower())
+        else:
+            distritos_excel.append(None)
+    
+    # conteo desde dataframe
+    conteo = df["2. Distrito:"].dropna().astype(str).str.strip().str.lower().value_counts()
+    
+    # construir frecuencias respetando el orden del Excel
+    frec = []
+    
+    for d in distritos_excel:
+        if d is None:
+            frec.append(0)
+        else:
+            frec.append(int(conteo.get(d, 0)))
+    
+    escribir_lista(ws, "D", 8, frec)
 
     # 2 EDAD
     orden = [

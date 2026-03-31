@@ -57,23 +57,39 @@ def obtener_descriptores(archivo):
 # -----------------------------
 # CLASIFICACIÓN MICMAC REAL
 # -----------------------------
+import numpy as np
+
 def clasificar_variables(df):
 
+    # -----------------------------
     # MATRIZ BASE
+    # -----------------------------
     M = df.values.astype(float)
 
+    # Normalización (clave)
     if M.max() != 0:
         M = M / M.max()
 
-    # MATRIZ INDIRECTA
+    # -----------------------------
+    # CONVERGENCIA REAL (NO ITERACIONES FIJAS)
+    # -----------------------------
     M_total = M.copy()
     M_power = M.copy()
 
-    for _ in range(1, 12):
-        M_power = np.dot(M_power, M)
-        M_total += M_power
+    for _ in range(100):  # límite alto de seguridad
 
-    # INFLUENCIA / DEPENDENCIA
+        M_next = np.dot(M_power, M)
+
+        # criterio de convergencia real
+        if np.allclose(M_next, M_power, atol=1e-6):
+            break
+
+        M_total += M_next
+        M_power = M_next
+
+    # -----------------------------
+    # INFLUENCIA Y DEPENDENCIA REALES
+    # -----------------------------
     influencia = M_total.sum(axis=1)
     dependencia = M_total.sum(axis=0)
 
@@ -84,29 +100,26 @@ def clasificar_variables(df):
     })
 
     # -----------------------------
-    # CLUSTERING (CLAVE)
+    # CENTRO REAL DEL PLANO
     # -----------------------------
-    X = resultado[["Influencia", "Dependencia"]].values
+    centro_inf = np.mean(influencia)
+    centro_dep = np.mean(dependencia)
 
-    kmeans = KMeans(n_clusters=4, random_state=0, n_init=10)
-    resultado["cluster"] = kmeans.fit_predict(X)
+    # -----------------------------
+    # CLASIFICACIÓN EXACTA
+    # -----------------------------
+    def clasificar(row):
 
-    centros = kmeans.cluster_centers_
-
-    clasificacion = {}
-
-    for i, (inf, dep) in enumerate(centros):
-
-        if inf > np.mean(influencia) and dep < np.mean(dependencia):
-            clasificacion[i] = "Poder"
-        elif inf > np.mean(influencia) and dep > np.mean(dependencia):
-            clasificacion[i] = "Conflicto"
-        elif inf < np.mean(influencia) and dep > np.mean(dependencia):
-            clasificacion[i] = "Resultados"
+        if row["Influencia"] > centro_inf and row["Dependencia"] < centro_dep:
+            return "Poder"
+        elif row["Influencia"] > centro_inf and row["Dependencia"] > centro_dep:
+            return "Conflicto"
+        elif row["Influencia"] < centro_inf and row["Dependencia"] > centro_dep:
+            return "Resultados"
         else:
-            clasificacion[i] = "Autonomas"
+            return "Autonomas"
 
-    resultado["Clasificacion"] = resultado["cluster"].map(clasificacion)
+    resultado["Clasificacion"] = resultado.apply(clasificar, axis=1)
 
     return resultado
 

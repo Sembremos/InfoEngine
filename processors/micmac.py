@@ -115,27 +115,27 @@ def procesar_micmac(archivo_micmac, wb):
     resultados = resultado[resultado["Clasificacion"] == "Resultados"]["Variable"].tolist()
     autonomas = resultado[resultado["Clasificacion"] == "Autonomas"]["Variable"].tolist()
 
-# -----------------------------
-# ESCRIBIR EN EXCEL (FILAS)
-# -----------------------------
-ws = wb.active  # o la hoja que estés usando
-
-# Limpiar antes (opcional pero recomendado)
-for col in ["B", "C", "D", "E"]:
-    for fila in range(124, 141):
-        ws[f"{col}{fila}"] = None
-
-# Función para escribir
-def escribir_columna(ws, lista, columna):
-    fila = 124
-    for item in lista:
-        if fila > 140:
-            break
-        ws[f"{columna}{fila}"] = item
-        fila += 1
-
-# Escribir datos
-escribir_columna(ws, poder, "B")
-escribir_columna(ws, conflicto, "C")
-escribir_columna(ws, resultados, "D")
-escribir_columna(ws, autonomas, "E")
+    # -----------------------------
+    # ESCRIBIR EN EXCEL (FILAS)
+    # -----------------------------
+    ws = wb.active  # o la hoja que estés usando
+    
+    # Limpiar antes (opcional pero recomendado)
+    for col in ["B", "C", "D", "E"]:
+        for fila in range(124, 141):
+            ws[f"{col}{fila}"] = None
+    
+    # Función para escribir
+    def escribir_columna(ws, lista, columna):
+        fila = 124
+        for item in lista:
+            if fila > 140:
+                break
+            ws[f"{columna}{fila}"] = item
+            fila += 1
+    
+    # Escribir datos
+    escribir_columna(ws, poder, "B")
+    escribir_columna(ws, conflicto, "C")
+    escribir_columna(ws, resultados, "D")
+    escribir_columna(ws, autonomas, "E")

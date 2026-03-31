@@ -68,22 +68,25 @@ def clasificar_variables(df):
         "Dependencia": dependencia
     })
 
-    # Ranking (clave para replicar MICMAC)
-    resultado["Rank_Inf"] = resultado["Influencia"].rank(ascending=False)
-    resultado["Rank_Dep"] = resultado["Dependencia"].rank(ascending=False)
+    # Centro del plano (MICMAC real)
+    centro_inf = resultado["Influencia"].mean()
+    centro_dep = resultado["Dependencia"].mean()
 
-    n = len(resultado)
-    corte = n / 2
+    # ⚠️ ajuste clave: eliminar ruido (variables muy bajas)
+    umbral_inf = resultado["Influencia"].quantile(0.25)
+    umbral_dep = resultado["Dependencia"].quantile(0.25)
 
     def clasificar(row):
-        alta_inf = row["Rank_Inf"] <= corte
-        alta_dep = row["Rank_Dep"] <= corte
 
-        if alta_inf and not alta_dep:
+        # Filtrar ruido (esto es lo que te estaba fallando)
+        if row["Influencia"] <= umbral_inf and row["Dependencia"] <= umbral_dep:
+            return "Autonomas"
+
+        if row["Influencia"] >= centro_inf and row["Dependencia"] < centro_dep:
             return "Poder"
-        elif alta_inf and alta_dep:
+        elif row["Influencia"] >= centro_inf and row["Dependencia"] >= centro_dep:
             return "Conflicto"
-        elif not alta_inf and alta_dep:
+        elif row["Influencia"] < centro_inf and row["Dependencia"] >= centro_dep:
             return "Resultados"
         else:
             return "Autonomas"

@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 # -----------------------------
 # DETECTAR MATRIZ MICMAC
@@ -57,40 +58,66 @@ def obtener_descriptores(archivo):
 # -----------------------------
 def clasificar_variables(df):
 
-    # Influencia = suma horizontal
-    influencia = df.sum(axis=1)
+    variables = list(df.index)
+    n = len(variables)
 
-    # Dependencia = suma vertical
-    dependencia = df.sum(axis=0)
+    # -----------------------------
+    # MATRIZ BASE
+    # -----------------------------
+    M = df.values.astype(float)
+
+    # -----------------------------
+    # MATRIZ BINARIA (grafo)
+    # -----------------------------
+    # MICMAC realmente trabaja sobre existencia + peso
+    G = (M > 0).astype(int)
+
+    # -----------------------------
+    # ACUMULACIÓN DE CAMINOS
+    # -----------------------------
+    # caminos de longitud 1 a 5 (clave real)
+    max_iter = 5
+
+    influencia_total = np.zeros(n)
+    dependencia_total = np.zeros(n)
+
+    G_power = G.copy()
+
+    for _ in range(max_iter):
+
+        # influencia = salidas
+        influencia_total += G_power.sum(axis=1)
+
+        # dependencia = entradas
+        dependencia_total += G_power.sum(axis=0)
+
+        # siguiente nivel de caminos
+        G_power = np.dot(G_power, G)
+
+        # evitar crecimiento infinito
+        G_power = (G_power > 0).astype(int)
 
     resultado = pd.DataFrame({
-        "Variable": df.index,
-        "Influencia": influencia,
-        "Dependencia": dependencia
+        "Variable": variables,
+        "Influencia": influencia_total,
+        "Dependencia": dependencia_total
     })
 
-    # Centro del sistema (promedios)
-    centro_inf = influencia.mean()
-    centro_dep = dependencia.mean()
+    # -----------------------------
+    # CENTRO DEL PLANO
+    # -----------------------------
+    centro_inf = influencia_total.mean()
+    centro_dep = dependencia_total.mean()
 
-    # Tolerancia (evita errores cerca del centro)
-    epsilon_inf = 0.05 * centro_inf
-    epsilon_dep = 0.05 * centro_dep
-
+    # -----------------------------
+    # CLASIFICACIÓN
+    # -----------------------------
     def clasificar(row):
-
-        I = row["Influencia"]
-        D = row["Dependencia"]
-
-        # Zona de tolerancia (se considera autónoma si está muy cerca del centro)
-        if abs(I - centro_inf) < epsilon_inf and abs(D - centro_dep) < epsilon_dep:
-            return "Autonomas"
-
-        if I >= centro_inf and D < centro_dep:
+        if row["Influencia"] > centro_inf and row["Dependencia"] < centro_dep:
             return "Poder"
-        elif I >= centro_inf and D >= centro_dep:
+        elif row["Influencia"] > centro_inf and row["Dependencia"] > centro_dep:
             return "Conflicto"
-        elif I < centro_inf and D >= centro_dep:
+        elif row["Influencia"] < centro_inf and row["Dependencia"] > centro_dep:
             return "Resultados"
         else:
             return "Autonomas"

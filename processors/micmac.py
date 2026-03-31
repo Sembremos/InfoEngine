@@ -1,74 +1,61 @@
 import pandas as pd
 
 # -----------------------------
-# DETECTAR MATRIZ MICMAC (ROBUSTO)
+# DETECTAR MATRIZ MICMAC (ROBUSTO REAL)
 # -----------------------------
 def detectar_matriz_micmac(archivo):
     df_raw = pd.read_excel(archivo, sheet_name="MATRIZ", header=None)
 
-    # Convertir todo a numérico donde se pueda
-    df_num = df_raw.applymap(lambda x: pd.to_numeric(x, errors='coerce'))
+    header_row = None
 
-    # Crear máscara de valores válidos (0–3)
-    mask = df_num.applymap(lambda x: x in [0,1,2,3] if pd.notna(x) else False)
+    for i in range(len(df_raw) - 1):
 
-    max_area = 0
-    best_block = None
+        fila = df_raw.iloc[i]
+        fila_siguiente = df_raw.iloc[i + 1]
 
-    rows, cols = mask.shape
+        # Detectar encabezado:
+        # fila actual = texto
+        # fila siguiente = números
+        if (
+            isinstance(fila[1], str) and
+            isinstance(fila[2], str) and
+            isinstance(fila_siguiente[1], (int, float))
+        ):
+            header_row = i
+            break
 
-    # Buscar el bloque cuadrado más grande de números
-    for i in range(rows):
-        for j in range(cols):
-
-            if not mask.iloc[i, j]:
-                continue
-
-            size = 1
-            while True:
-                if i + size > rows or j + size > cols:
-                    break
-
-                bloque = mask.iloc[i:i+size, j:j+size]
-
-                if bloque.all().all():
-                    area = size * size
-
-                    if area > max_area:
-                        max_area = area
-                        best_block = (i, j, size)
-
-                    size += 1
-                else:
-                    break
-
-    if best_block is None:
+    if header_row is None:
         return None
 
-    i, j, size = best_block
+    # -----------------------------
+    # VARIABLES (ENCABEZADO)
+    # -----------------------------
+    variables = df_raw.iloc[header_row, 1:].dropna().tolist()
+    size = len(variables)
 
-    # Extraer matriz con encabezados
-    df = pd.read_excel(
-        archivo,
-        sheet_name="MATRIZ",
-        skiprows=i-1,
-        usecols=range(j, j+size+1),
-        index_col=0
-    )
+    # -----------------------------
+    # MATRIZ NUMÉRICA
+    # -----------------------------
+    data = []
 
-    df = df.iloc[:size, :size]
+    for j in range(size):
+        fila_data = df_raw.iloc[header_row + 1 + j, 1:1 + size]
+        fila_data = pd.to_numeric(fila_data, errors='coerce').fillna(0)
+        data.append(fila_data.tolist())
 
-    # Forzar numérico
-    df = df.apply(pd.to_numeric, errors='coerce').fillna(0)
+    df = pd.DataFrame(data, columns=variables, index=variables)
 
     return df
 
 
 # -----------------------------
-# DESCRIPTORES
+# DESCRIPTORES (CON FALLBACK)
 # -----------------------------
 def obtener_descriptores(archivo):
-    df_desc = pd.read_excel(archivo, sheet_name="DESCRIPTORES")
+    try:
+        df_desc = pd.read_excel(archivo, sheet_name="DESCRIPTORES")
+    except:
+        df_desc = pd.read_excel(archivo, sheet_name="DESCRIPTORES ")
 
     mapping = dict(zip(df_desc.iloc[:, 0], df_desc.iloc[:, 1]))
     return mapping
@@ -135,7 +122,7 @@ def procesar_micmac(archivo_micmac, wb):
     autonomas_txt = "\n".join(autonomas)
 
     # Escribir en Excel
-    ws = wb.active  # si usás otra hoja, decímelo
+    ws = wb.active  # cambiar si usás una hoja específica
 
     ws["B124"] = poder_txt
     ws["C124"] = conflicto_txt

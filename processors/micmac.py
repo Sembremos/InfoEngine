@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.cluster import KMeans
 
 # -----------------------------
 # DETECTAR MATRIZ MICMAC
@@ -14,7 +15,6 @@ def detectar_matriz_micmac(archivo):
         fila = df_raw.iloc[i]
         fila_siguiente = df_raw.iloc[i + 1]
 
-        # Detectar encabezado (texto arriba, números abajo)
         if (
             isinstance(fila[1], str) and
             isinstance(fila[2], str) and
@@ -26,11 +26,9 @@ def detectar_matriz_micmac(archivo):
     if header_row is None:
         return None
 
-    # Variables
     variables = df_raw.iloc[header_row, 1:].dropna().tolist()
     size = len(variables)
 
-    # Matriz numérica
     data = []
 
     for j in range(size):
@@ -57,35 +55,25 @@ def obtener_descriptores(archivo):
 
 
 # -----------------------------
-# CLASIFICACIÓN (MICMAC REAL)
+# CLASIFICACIÓN MICMAC REAL
 # -----------------------------
-import numpy as np
-
 def clasificar_variables(df):
-    # -----------------------------
+
     # MATRIZ BASE
-    # -----------------------------
     M = df.values.astype(float)
 
-    # -----------------------------
-    # NORMALIZAR (evitar explosión)
-    # -----------------------------
     if M.max() != 0:
         M = M / M.max()
 
-    # -----------------------------
-    # MATRIZ INDIRECTA (MICMAC REAL)
-    # -----------------------------
+    # MATRIZ INDIRECTA
     M_total = M.copy()
     M_power = M.copy()
 
-    for _ in range(1, 10):  # profundidad (puede subir a 15 si querés más precisión)
+    for _ in range(1, 12):
         M_power = np.dot(M_power, M)
         M_total += M_power
 
-    # -----------------------------
-    # CALCULAR INFLUENCIA Y DEPENDENCIA
-    # -----------------------------
+    # INFLUENCIA / DEPENDENCIA
     influencia = M_total.sum(axis=1)
     dependencia = M_total.sum(axis=0)
 
@@ -96,25 +84,29 @@ def clasificar_variables(df):
     })
 
     # -----------------------------
-    # CENTRO DEL PLANO
+    # CLUSTERING (CLAVE)
     # -----------------------------
-    centro_inf = np.mean(influencia)
-    centro_dep = np.mean(dependencia)
+    X = resultado[["Influencia", "Dependencia"]].values
 
-    # -----------------------------
-    # CLASIFICACIÓN
-    # -----------------------------
-    def clasificar(row):
-        if row["Influencia"] >= centro_inf and row["Dependencia"] < centro_dep:
-            return "Poder"
-        elif row["Influencia"] >= centro_inf and row["Dependencia"] >= centro_dep:
-            return "Conflicto"
-        elif row["Influencia"] < centro_inf and row["Dependencia"] >= centro_dep:
-            return "Resultados"
+    kmeans = KMeans(n_clusters=4, random_state=0, n_init=10)
+    resultado["cluster"] = kmeans.fit_predict(X)
+
+    centros = kmeans.cluster_centers_
+
+    clasificacion = {}
+
+    for i, (inf, dep) in enumerate(centros):
+
+        if inf > np.mean(influencia) and dep < np.mean(dependencia):
+            clasificacion[i] = "Poder"
+        elif inf > np.mean(influencia) and dep > np.mean(dependencia):
+            clasificacion[i] = "Conflicto"
+        elif inf < np.mean(influencia) and dep > np.mean(dependencia):
+            clasificacion[i] = "Resultados"
         else:
-            return "Autonomas"
+            clasificacion[i] = "Autonomas"
 
-    resultado["Clasificacion"] = resultado.apply(clasificar, axis=1)
+    resultado["Clasificacion"] = resultado["cluster"].map(clasificacion)
 
     return resultado
 
@@ -143,16 +135,16 @@ def procesar_micmac(archivo_micmac, wb):
     autonomas = resultado[resultado["Clasificacion"] == "Autonomas"]["Variable"].tolist()
 
     # -----------------------------
-    # ESCRIBIR EN EXCEL (FILAS)
+    # ESCRIBIR EN EXCEL
     # -----------------------------
-    ws = wb.active  # cambiar si usás otra hoja
+    ws = wb.active
 
     # Limpiar rango
     for col in ["B", "C", "D", "E"]:
         for fila in range(124, 141):
             ws[f"{col}{fila}"] = None
 
-    def escribir_columna(lista, columna):
+    def escribir(lista, columna):
         fila = 124
         for item in lista:
             if fila > 140:
@@ -160,7 +152,7 @@ def procesar_micmac(archivo_micmac, wb):
             ws[f"{columna}{fila}"] = item
             fila += 1
 
-    escribir_columna(poder, "B")
-    escribir_columna(conflicto, "C")
-    escribir_columna(resultados, "D")
-    escribir_columna(autonomas, "E")
+    escribir(poder, "B")
+    escribir(conflicto, "C")
+    escribir(resultados, "D")
+    escribir(autonomas, "E")

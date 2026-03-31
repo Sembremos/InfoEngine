@@ -1,7 +1,7 @@
 import pandas as pd
 
 # -----------------------------
-# DETECTAR MATRIZ MICMAC (ROBUSTO REAL)
+# DETECTAR MATRIZ MICMAC
 # -----------------------------
 def detectar_matriz_micmac(archivo):
     df_raw = pd.read_excel(archivo, sheet_name="MATRIZ", header=None)
@@ -13,9 +13,7 @@ def detectar_matriz_micmac(archivo):
         fila = df_raw.iloc[i]
         fila_siguiente = df_raw.iloc[i + 1]
 
-        # Detectar encabezado:
-        # fila actual = texto
-        # fila siguiente = números
+        # Detectar encabezado (texto arriba, números abajo)
         if (
             isinstance(fila[1], str) and
             isinstance(fila[2], str) and
@@ -27,15 +25,11 @@ def detectar_matriz_micmac(archivo):
     if header_row is None:
         return None
 
-    # -----------------------------
-    # VARIABLES (ENCABEZADO)
-    # -----------------------------
+    # Variables
     variables = df_raw.iloc[header_row, 1:].dropna().tolist()
     size = len(variables)
 
-    # -----------------------------
-    # MATRIZ NUMÉRICA
-    # -----------------------------
+    # Matriz numérica
     data = []
 
     for j in range(size):
@@ -49,7 +43,7 @@ def detectar_matriz_micmac(archivo):
 
 
 # -----------------------------
-# DESCRIPTORES (CON FALLBACK)
+# DESCRIPTORES
 # -----------------------------
 def obtener_descriptores(archivo):
     try:
@@ -62,7 +56,7 @@ def obtener_descriptores(archivo):
 
 
 # -----------------------------
-# CLASIFICACIÓN MICMAC
+# CLASIFICACIÓN (MICMAC REAL)
 # -----------------------------
 def clasificar_variables(df):
     influencia = df.sum(axis=1)
@@ -74,19 +68,22 @@ def clasificar_variables(df):
         "Dependencia": dependencia
     })
 
-    prom_inf = resultado["Influencia"].median()
-    prom_dep = resultado["Dependencia"].median()
+    # Ranking (clave para replicar MICMAC)
+    resultado["Rank_Inf"] = resultado["Influencia"].rank(ascending=False)
+    resultado["Rank_Dep"] = resultado["Dependencia"].rank(ascending=False)
 
-    # pequeño ajuste de tolerancia
-    epsilon = 0.01
-    
+    n = len(resultado)
+    corte = n / 2
 
     def clasificar(row):
-        if row["Influencia"] >= prom_inf and row["Dependencia"] < prom_dep:
+        alta_inf = row["Rank_Inf"] <= corte
+        alta_dep = row["Rank_Dep"] <= corte
+
+        if alta_inf and not alta_dep:
             return "Poder"
-        elif row["Influencia"] >= prom_inf and row["Dependencia"] >= prom_dep:
+        elif alta_inf and alta_dep:
             return "Conflicto"
-        elif row["Influencia"] < prom_inf and row["Dependencia"] >= prom_dep:
+        elif not alta_inf and alta_dep:
             return "Resultados"
         else:
             return "Autonomas"
@@ -122,24 +119,22 @@ def procesar_micmac(archivo_micmac, wb):
     # -----------------------------
     # ESCRIBIR EN EXCEL (FILAS)
     # -----------------------------
-    ws = wb.active  # o la hoja que estés usando
-    
-    # Limpiar antes (opcional pero recomendado)
+    ws = wb.active  # cambiar si usás otra hoja
+
+    # Limpiar rango
     for col in ["B", "C", "D", "E"]:
         for fila in range(124, 141):
             ws[f"{col}{fila}"] = None
-    
-    # Función para escribir
-    def escribir_columna(ws, lista, columna):
+
+    def escribir_columna(lista, columna):
         fila = 124
         for item in lista:
             if fila > 140:
                 break
             ws[f"{columna}{fila}"] = item
             fila += 1
-    
-    # Escribir datos
-    escribir_columna(ws, poder, "B")
-    escribir_columna(ws, conflicto, "C")
-    escribir_columna(ws, resultados, "D")
-    escribir_columna(ws, autonomas, "E")
+
+    escribir_columna(poder, "B")
+    escribir_columna(conflicto, "C")
+    escribir_columna(resultados, "D")
+    escribir_columna(autonomas, "E")

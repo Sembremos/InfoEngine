@@ -1,168 +1,168 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+from openpyxl import load_workbook
 
-# -----------------------------
-# DETECTAR MATRIZ MICMAC
-# -----------------------------
-def detectar_matriz_micmac(archivo):
-    df_raw = pd.read_excel(archivo, sheet_name="MATRIZ", header=None)
 
+def _find_matrix_bounds(ws):
+    """Encuentra fila/col de inicio de la matriz MICMAC en la hoja MATRIZ."""
+    for row in ws.iter_rows():
+        for cell in row:
+            if cell.value is None:
+                continue
+            # La celda superior izquierda de la matriz tiene None,
+            # pero la fila de encabezados tiene None en col A y nombres cortos desde col B
+            if cell.column == 1 and cell.value is None:
+                continue
+            # Buscamos la fila donde col A es None y col B tiene un nombre de variable
+            pass
+
+    # Estrategia: buscar fila donde col A = None y col B = string (encabezado de columnas)
+    # y la siguiente fila col A = mismo string que col B de encabezado
     header_row = None
-
-    for i in range(len(df_raw) - 1):
-
-        fila = df_raw.iloc[i]
-        fila_siguiente = df_raw.iloc[i + 1]
-
-        if (
-            isinstance(fila[1], str) and
-            isinstance(fila[2], str) and
-            isinstance(fila_siguiente[1], (int, float))
-        ):
-            header_row = i
-            break
+    for r in range(1, ws.max_row + 1):
+        a_val = ws.cell(row=r, column=1).value
+        b_val = ws.cell(row=r, column=2).value
+        if a_val is None and isinstance(b_val, str) and len(b_val) > 0:
+            # Verificar que la siguiente fila col A == b_val (confirma que es encabezado)
+            next_a = ws.cell(row=r + 1, column=1).value
+            if next_a == b_val:
+                header_row = r
+                break
 
     if header_row is None:
-        return None
+        raise ValueError("No se encontró la tabla MICMAC en la hoja MATRIZ.")
 
-    variables = df_raw.iloc[header_row, 1:].dropna().tolist()
-    size = len(variables)
+    # Leer nombres de variables desde encabezado (col B en adelante)
+    variables = []
+    col = 2
+    while True:
+        val = ws.cell(row=header_row, column=col).value
+        if val is None:
+            break
+        variables.append(str(val).strip())
+        col += 1
 
-    data = []
+    data_start_row = header_row + 1
+    n = len(variables)
 
-    for j in range(size):
-        fila_data = df_raw.iloc[header_row + 1 + j, 1:1 + size]
-        fila_data = pd.to_numeric(fila_data, errors='coerce')
-
-        # eliminar diagonal (#REF!)
-        fila_data.iloc[j] = 0
-        fila_data = fila_data.fillna(0)
-
-        data.append(fila_data.tolist())
-
-    df = pd.DataFrame(data, columns=variables, index=variables)
-
-    return df
+    return data_start_row, n, variables
 
 
-# -----------------------------
-# DESCRIPTORES
-# -----------------------------
-def obtener_descriptores(archivo):
-    try:
-        df_desc = pd.read_excel(archivo, sheet_name="DESCRIPTORES")
-    except:
-        df_desc = pd.read_excel(archivo, sheet_name="DESCRIPTORES ")
+def _extract_matrix(ws, data_start_row, n):
+    """Extrae la matriz numérica n×n desde la hoja."""
+    matrix = np.zeros((n, n), dtype=float)
+    for i in range(n):
+        for j in range(n):
+            val = ws.cell(row=data_start_row + i, column=2 + j).value
+            if isinstance(val, (int, float)) and val is not None:
+                matrix[i][j] = float(val)
+    return matrix
 
-    return dict(zip(df_desc.iloc[:, 0], df_desc.iloc[:, 1]))
+
+def _load_descriptors(wb):
+    """Carga el mapeo NOMBRE_CORTO → DESCRIPTOR desde la hoja DESCRIPTORES."""
+    # El nombre de la hoja puede tener espacios al final
+    sheet_name = next((s for s in wb.sheetnames if s.strip().upper() == "DESCRIPTORES"), None)
+    if sheet_name is None:
+        raise ValueError("No se encontró la hoja DESCRIPTORES en el archivo.")
+
+    ws = wb[sheet_name]
+    mapping = {}
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        corto = row[0]
+        descriptor = row[1]
+        if corto and descriptor:
+            mapping[str(corto).strip()] = str(descriptor).strip()
+    return mapping
 
 
-# -----------------------------
-# CLASIFICACIÓN CALIBRADA
-# -----------------------------
-def clasificar_variables(df):
+def _classify_micmac(variables, matrix, k=3):
+    """
+    Calcula M* = M + M² + M³ y clasifica variables por cuadrante.
+    Corte: mediana de motricidad y mediana de dependencia (fiel a MICMAC).
+    Retorna dict con listas: poder, conflicto, resultados, autonomas.
+    """
+    # Normalizar para evitar explosión numérica en potencias
+    m_max = matrix.max()
+    if m_max == 0:
+        raise ValueError("La matriz MICMAC está vacía o todos los valores son cero.")
 
-    M = df.values.astype(float)
-    n = len(M)
+    M = matrix / m_max
 
-    # -----------------------------
-    # ACUMULACIÓN (tipo MICMAC)
-    # -----------------------------
-    influencia = np.zeros(n)
-    dependencia = np.zeros(n)
+    # Matriz acumulada M* = M + M² + M³
+    M_acc = np.zeros_like(M)
+    M_pot = M.copy()
+    for _ in range(k):
+        M_acc += M_pot
+        M_pot = M_pot @ M
 
-    M_temp = M.copy()
+    # Motricidad = suma de filas, Dependencia = suma de columnas
+    motricidad = M_acc.sum(axis=1)
+    dependencia = M_acc.sum(axis=0)
 
-    for _ in range(4):
-        influencia += M_temp.sum(axis=1)
-        dependencia += M_temp.sum(axis=0)
-        M_temp = np.dot(M_temp, M)
+    # Umbral: mediana (fiel a distribución relativa de MICMAC)
+    umbral_I = np.median(motricidad)
+    umbral_D = np.median(dependencia)
 
-    # -----------------------------
-    # NORMALIZACIÓN
-    # -----------------------------
-    if max(influencia) != 0:
-        influencia = influencia / max(influencia)
+    cuadrantes = {"poder": [], "conflicto": [], "resultados": [], "autonomas": []}
 
-    if max(dependencia) != 0:
-        dependencia = dependencia / max(dependencia)
+    for i, var in enumerate(variables):
+        alta_I = motricidad[i] >= umbral_I
+        alta_D = dependencia[i] >= umbral_D
 
-    resultado = pd.DataFrame({
-        "Variable": df.index,
-        "Influencia": influencia,
-        "Dependencia": dependencia
-    })
-
-    # -----------------------------
-    # UMBRALES CALIBRADOS (TU CASO)
-    # -----------------------------
-    def clasificar(row):
-        I = row["Influencia"]
-        D = row["Dependencia"]
-
-        # PODER
-        if I >= 0.55 and D <= 0.45:
-            return "Poder"
-
-        # CONFLICTO
-        elif I >= 0.55 and D > 0.45:
-            return "Conflicto"
-
-        # RESULTADOS
-        elif I < 0.40 and D >= 0.55:
-            return "Resultados"
-
-        # AUTÓNOMAS
+        if alta_I and not alta_D:
+            cuadrantes["poder"].append(var)
+        elif alta_I and alta_D:
+            cuadrantes["conflicto"].append(var)
+        elif not alta_I and alta_D:
+            cuadrantes["resultados"].append(var)
         else:
-            return "Autonomas"
+            cuadrantes["autonomas"].append(var)
 
-    resultado["Clasificacion"] = resultado.apply(clasificar, axis=1)
-
-    return resultado
+    return cuadrantes
 
 
-# -----------------------------
-# FUNCIÓN PRINCIPAL
-# -----------------------------
-def procesar_micmac(archivo_micmac, wb):
+def _write_to_engine(wb_engine, cuadrantes, descriptor_map):
+    """
+    Escribe los resultados en info_engine:
+      B124 = Poder, C124 = Conflicto, D124 = Resultados, E124 = Autónomas
+    Una variable por fila, bajando desde fila 124.
+    Usa el DESCRIPTOR completo en lugar del nombre corto.
+    """
+    sheet = wb_engine.active
 
-    df = detectar_matriz_micmac(archivo_micmac)
+    col_map = {
+        "poder":      2,   # B
+        "conflicto":  3,   # C
+        "resultados": 4,   # D
+        "autonomas":  5,   # E
+    }
+    start_row = 124
 
-    if df is None:
-        raise ValueError("No se pudo detectar la matriz MICMAC")
+    for cuadrante, col in col_map.items():
+        for i, var_corto in enumerate(cuadrantes[cuadrante]):
+            descriptor = descriptor_map.get(var_corto, var_corto)
+            sheet.cell(row=start_row + i, column=col, value=descriptor)
 
-    mapping = obtener_descriptores(archivo_micmac)
 
-    resultado = clasificar_variables(df)
+def procesar_micmac(archivo_micmac, wb_engine):
+    """
+    Función principal llamada desde app.py.
+    archivo_micmac: objeto file-like (BytesIO desde Streamlit)
+    wb_engine: workbook openpyxl ya cargado de info_engine
+    """
+    wb = load_workbook(archivo_micmac)
 
-    # reemplazar nombres por descriptores
-    resultado["Variable"] = resultado["Variable"].map(mapping).fillna(resultado["Variable"])
+    # Cargar mapeo de descriptores
+    descriptor_map = _load_descriptors(wb)
 
-    # separar grupos
-    poder = resultado[resultado["Clasificacion"] == "Poder"]["Variable"].tolist()
-    conflicto = resultado[resultado["Clasificacion"] == "Conflicto"]["Variable"].tolist()
-    resultados = resultado[resultado["Clasificacion"] == "Resultados"]["Variable"].tolist()
-    autonomas = resultado[resultado["Clasificacion"] == "Autonomas"]["Variable"].tolist()
+    # Leer matriz MICMAC
+    ws_matriz = wb["MATRIZ"]
+    data_start_row, n, variables = _find_matrix_bounds(ws_matriz)
+    matrix = _extract_matrix(ws_matriz, data_start_row, n)
 
-    # -----------------------------
-    # ESCRIBIR EN EXCEL
-    # -----------------------------
-    ws = wb.active  # cambiar si usás otra hoja
+    # Clasificar por cuadrantes
+    cuadrantes = _classify_micmac(variables, matrix, k=3)
 
-    # limpiar rango
-    for col in ["B", "C", "D", "E"]:
-        for fila in range(124, 141):
-            ws[f"{col}{fila}"] = None
-
-    def escribir(lista, columna):
-        fila = 124
-        for item in lista:
-            if fila > 140:
-                break
-            ws[f"{columna}{fila}"] = item
-            fila += 1
-
-    escribir(poder, "B")
-    escribir(conflicto, "C")
-    escribir(resultados, "D")
-    escribir(autonomas, "E")
+    # Escribir en info_engine
+    _write_to_engine(wb_engine, cuadrantes, descriptor_map)

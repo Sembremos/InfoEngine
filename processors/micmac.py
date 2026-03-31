@@ -6,9 +6,13 @@ def detectar_matriz_micmac(archivo):
     for i in range(len(df_raw)):
         fila = df_raw.iloc[i]
 
-        textos = fila.apply(lambda x: isinstance(x, str))
-        if textos.sum() >= 3:
+        # Contar textos en la fila (posibles variables)
+        textos = [x for x in fila[1:] if isinstance(x, str)]
 
+        # Condición: al menos 3 variables detectadas
+        if len(textos) >= 3:
+
+            # Intentar leer matriz desde ahí
             try:
                 df = pd.read_excel(
                     archivo,
@@ -17,12 +21,19 @@ def detectar_matriz_micmac(archivo):
                     index_col=0
                 )
 
-                # Limpiar columnas vacías
-                df = df.dropna(how="all").dropna(axis=1, how="all")
+                # Limpiar completamente
+                df = df.dropna(how="all")
+                df = df.dropna(axis=1, how="all")
 
-                # Validar cuadrada y numérica
-                if df.shape[0] == df.shape[1] and df.applymap(lambda x: isinstance(x, (int, float))).all().all():
-                    return df
+                # Forzar numérico
+                df = df.apply(pd.to_numeric, errors='coerce')
+
+                # Validar que tenga suficientes datos numéricos
+                if df.notna().sum().sum() > (df.shape[0] * df.shape[1] * 0.6):
+
+                    # Validar cuadrada
+                    if df.shape[0] == df.shape[1]:
+                        return df
 
             except:
                 continue

@@ -74,8 +74,12 @@ def clasificar_variables(df):
         "Dependencia": dependencia
     })
 
-    prom_inf = resultado["Influencia"].mean()
-    prom_dep = resultado["Dependencia"].mean()
+    prom_inf = resultado["Influencia"].median()
+    prom_dep = resultado["Dependencia"].median()
+
+    # pequeño ajuste de tolerancia
+    epsilon = 0.01
+    
 
     def clasificar(row):
         if row["Influencia"] >= prom_inf and row["Dependencia"] < prom_dep:

@@ -44,9 +44,6 @@ def detectar_matriz_micmac(archivo):
 
     df = pd.DataFrame(data, columns=variables, index=variables)
 
-    # asegurar diagonal en 0
-    np.fill_diagonal(df.values, 0)
-
     return df
 
 

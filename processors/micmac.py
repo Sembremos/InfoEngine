@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 # -----------------------------
 # DETECTAR MATRIZ MICMAC
@@ -58,9 +59,35 @@ def obtener_descriptores(archivo):
 # -----------------------------
 # CLASIFICACIÓN (MICMAC REAL)
 # -----------------------------
+import numpy as np
+
 def clasificar_variables(df):
-    influencia = df.sum(axis=1)
-    dependencia = df.sum(axis=0)
+    # -----------------------------
+    # MATRIZ BASE
+    # -----------------------------
+    M = df.values.astype(float)
+
+    # -----------------------------
+    # NORMALIZAR (evitar explosión)
+    # -----------------------------
+    if M.max() != 0:
+        M = M / M.max()
+
+    # -----------------------------
+    # MATRIZ INDIRECTA (MICMAC REAL)
+    # -----------------------------
+    M_total = M.copy()
+    M_power = M.copy()
+
+    for _ in range(1, 10):  # profundidad (puede subir a 15 si querés más precisión)
+        M_power = np.dot(M_power, M)
+        M_total += M_power
+
+    # -----------------------------
+    # CALCULAR INFLUENCIA Y DEPENDENCIA
+    # -----------------------------
+    influencia = M_total.sum(axis=1)
+    dependencia = M_total.sum(axis=0)
 
     resultado = pd.DataFrame({
         "Variable": df.index,
@@ -68,20 +95,16 @@ def clasificar_variables(df):
         "Dependencia": dependencia
     })
 
-    # Centro del plano (MICMAC real)
-    centro_inf = resultado["Influencia"].mean()
-    centro_dep = resultado["Dependencia"].mean()
+    # -----------------------------
+    # CENTRO DEL PLANO
+    # -----------------------------
+    centro_inf = np.mean(influencia)
+    centro_dep = np.mean(dependencia)
 
-    # ⚠️ ajuste clave: eliminar ruido (variables muy bajas)
-    umbral_inf = resultado["Influencia"].quantile(0.25)
-    umbral_dep = resultado["Dependencia"].quantile(0.25)
-
+    # -----------------------------
+    # CLASIFICACIÓN
+    # -----------------------------
     def clasificar(row):
-
-        # Filtrar ruido (esto es lo que te estaba fallando)
-        if row["Influencia"] <= umbral_inf and row["Dependencia"] <= umbral_dep:
-            return "Autonomas"
-
         if row["Influencia"] >= centro_inf and row["Dependencia"] < centro_dep:
             return "Poder"
         elif row["Influencia"] >= centro_inf and row["Dependencia"] >= centro_dep:

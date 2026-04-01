@@ -72,7 +72,7 @@ def procesar_pareto(archivo_pareto, wb_destino):
     # -----------------------------
     # CANTIDAD DESCRIPTORES → HOJA1
     # -----------------------------
-    ws_hoja1["B93"] = df[col_descriptor].dropna().shape[0]
+    ws_hoja1["D93"] = df[col_descriptor].dropna().shape[0]
 
     # -----------------------------
     # DELITOS / RIESGOS → HOJA1

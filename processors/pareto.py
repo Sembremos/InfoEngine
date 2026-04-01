@@ -72,7 +72,7 @@ def procesar_pareto(archivo_pareto, wb_destino):
     # -----------------------------
     # CANTIDAD DESCRIPTORES → HOJA1
     # -----------------------------
-    ws_hoja1["B93"] = len(df_filtrado)
+    ws_hoja1["B93"] = len(df)
 
     # -----------------------------
     # DELITOS / RIESGOS → HOJA1

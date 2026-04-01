@@ -7,7 +7,7 @@ from processors.comunidad import procesar_comunidad
 from processors.comercio import procesar_comercio
 from processors.estadistica import procesar_estadistica
 from processors.lineas_accion import procesar_lineas_accion
-from processors.micmac import procesar_micmac
+from processors.micmac import escribir_cuadrantes_manual
 
 
 st.title("Generador de info_engine")
@@ -19,40 +19,50 @@ archivo_comunidad = st.file_uploader("Subir Comunidad", type=["xlsx"])
 archivo_comercio = st.file_uploader("Subir Comercio", type=["xlsx"])
 archivo_estadistica = st.file_uploader("Subir Estadística", type=["xlsx"])
 archivo_lineas = st.file_uploader("Subir Líneas de Acción", type=["xlsx"])
-archivo_micmac = st.file_uploader("Subir MICMAC", type=["xlsx"])
+
+
+# -----------------------------
+# MICMAC MANUAL
+# -----------------------------
+st.subheader("Clasificación MICMAC (Manual)")
+
+poder_input = st.text_area("Poder (una por línea)")
+conflicto_input = st.text_area("Conflicto (una por línea)")
+resultados_input = st.text_area("Resultados (una por línea)")
+autonomas_input = st.text_area("Autónomas (una por línea)")
+
 
 # -----------------------------
 # BOTÓN PRINCIPAL
 # -----------------------------
 if st.button("Generar info_engine"):
 
-    # Validación
-    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_micmac:
+    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas:
         st.error("Debe subir todos los archivos")
     else:
         try:
-            # -----------------------------
-            # LECTURA DE ARCHIVOS
-            # -----------------------------
             df_comunidad = pd.read_excel(archivo_comunidad)
             df_comercio = pd.read_excel(archivo_comercio)
 
-            # -----------------------------
-            # CARGAR PLANTILLA BASE
-            # -----------------------------
             wb = load_workbook("plantillas/info_engine.xlsx")
 
-            # -----------------------------
-            # PROCESADORES
-            # -----------------------------
             procesar_comunidad(df_comunidad, wb)
             procesar_comercio(df_comercio, wb)
             procesar_estadistica(archivo_estadistica, wb)
             procesar_lineas_accion(archivo_lineas, wb)
-            procesar_micmac(archivo_micmac, wb)
 
             # -----------------------------
-            # EXPORTAR RESULTADO
+            # PROCESAR MICMAC MANUAL
+            # -----------------------------
+            poder = [x.strip() for x in poder_input.split("\n") if x.strip()]
+            conflicto = [x.strip() for x in conflicto_input.split("\n") if x.strip()]
+            resultados = [x.strip() for x in resultados_input.split("\n") if x.strip()]
+            autonomas = [x.strip() for x in autonomas_input.split("\n") if x.strip()]
+
+            escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas)
+
+            # -----------------------------
+            # EXPORTAR
             # -----------------------------
             archivo_salida = io.BytesIO()
             wb.save(archivo_salida)

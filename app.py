@@ -13,7 +13,7 @@ from processors.pareto import procesar_pareto
 
 st.title("Generador de info_engine")
 
-# -----------------------------
+# -----------------------------s
 # CARGA DE ARCHIVOS
 # -----------------------------
 archivo_comunidad = st.file_uploader("Subir Comunidad", type=["xlsx"])

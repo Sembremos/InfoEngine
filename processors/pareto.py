@@ -32,6 +32,11 @@ def procesar_pareto(archivo_pareto, wb_destino):
     ws_hoja1 = wb_destino["Hoja1"]
     ws_pareto = wb_destino["pareto"]
 
+    # descombinar hoja1 (por seguridad)
+    merged_ranges = list(ws_hoja1.merged_cells.ranges)
+    
+    for merged in merged_ranges:
+        ws_hoja1.unmerge_cells(str(merged))
     # -----------------------------
     # DESCOMBINAR CELDAS EN HOJA PARETO
     # -----------------------------

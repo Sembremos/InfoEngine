@@ -1,7 +1,5 @@
 import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.drawing.image import Image
-import tempfile
 
 
 # -----------------------------
@@ -14,7 +12,7 @@ def procesar_pareto(archivo_pareto, wb_destino):
     # -----------------------------
     df = pd.read_excel(archivo_pareto)
 
-    # normalizar nombres por si acaso
+    # normalizar columnas
     df.columns = [str(c).strip().upper() for c in df.columns]
 
     # columnas esperadas
@@ -35,25 +33,68 @@ def procesar_pareto(archivo_pareto, wb_destino):
     df_filtrado = df[df[col_segmento].astype(str).str.upper() == "PRIORIZADO"]
 
     # -----------------------------
-    # SEPARAR POR CATEGORIA
+    # ESCRIBIR TABLA COMPLETA (A-G)
     # -----------------------------
+    ws = wb_destino["Hoja1"]
+
+    fila_excel = 2  # empieza en A2
+
+    for _, row in df_filtrado.iterrows():
+
+        if fila_excel > 31:
+            break
+
+        # escribir columnas A-G
+        ws[f"A{fila_excel}"] = row.iloc[0]  # categoria
+        ws[f"B{fila_excel}"] = row.iloc[1]  # descriptor
+        ws[f"C{fila_excel}"] = row.iloc[2]  # frecuencia
+        ws[f"D{fila_excel}"] = row.iloc[3]  # porcentaje
+        ws[f"E{fila_excel}"] = row.iloc[4]  # pct_acum
+        ws[f"F{fila_excel}"] = row.iloc[5]  # acumulado
+        ws[f"G{fila_excel}"] = row.iloc[6]  # segmento
+
+        fila_excel += 1
+
+    # -----------------------------
+    # BUSCAR TOTAL
+    # -----------------------------
+    df_raw = pd.read_excel(archivo_pareto, header=None)
+
+    total_valor = None
+
+    for i in range(len(df_raw)):
+        celda = str(df_raw.iloc[i, 1]).strip().upper()  # columna B
+
+        if celda == "TOTAL:":
+            total_valor = df_raw.iloc[i, 2]  # columna C
+            break
+
+    if total_valor is not None:
+        ws["B88"] = total_valor
+
+    # -----------------------------
+    # CONTAR DESCRIPTORES PRIORIZADOS
+    # -----------------------------
+    cantidad_descriptores = len(df_filtrado)
+
+    ws["B93"] = cantidad_descriptores
+
+    # -----------------------------
+    # (TU CÓDIGO ORIGINAL SIGUE)
+    # -----------------------------
+    # SEPARAR POR CATEGORIA
     delitos = df_filtrado[df_filtrado[col_categoria].astype(str).str.upper() == "DELITO"]
     riesgos = df_filtrado[df_filtrado[col_categoria].astype(str).str.upper() == "RIESGO SOCIAL"]
 
     lista_delitos = delitos[col_descriptor].tolist()
     lista_riesgos = riesgos[col_descriptor].tolist()
 
-    # -----------------------------
-    # ESCRIBIR EN INFO_ENGINE
-    # -----------------------------
-    ws = wb_destino["Hoja1"]
-
     # limpiar rangos
     for fila in range(97, 118):
         ws[f"B{fila}"] = None
         ws[f"C{fila}"] = None
 
-    # escribir delitos (columna B)
+    # escribir delitos
     fila = 97
     for item in lista_delitos:
         if fila > 117:
@@ -61,12 +102,10 @@ def procesar_pareto(archivo_pareto, wb_destino):
         ws[f"B{fila}"] = item
         fila += 1
 
-    # escribir riesgos (columna C)
+    # escribir riesgos
     fila = 97
     for item in lista_riesgos:
         if fila > 117:
             break
         ws[f"C{fila}"] = item
         fila += 1
-
-   

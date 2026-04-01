@@ -49,12 +49,12 @@ def procesar_pareto(archivo_pareto, wb_destino):
     ws = wb_destino["Hoja1"]
 
     # limpiar rangos
-    for fila in range(96, 118):
+    for fila in range(97, 118):
         ws[f"B{fila}"] = None
         ws[f"C{fila}"] = None
 
     # escribir delitos (columna B)
-    fila = 96
+    fila = 97
     for item in lista_delitos:
         if fila > 117:
             break
@@ -62,7 +62,7 @@ def procesar_pareto(archivo_pareto, wb_destino):
         fila += 1
 
     # escribir riesgos (columna C)
-    fila = 96
+    fila = 97
     for item in lista_riesgos:
         if fila > 117:
             break

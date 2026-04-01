@@ -8,6 +8,7 @@ from processors.comercio import procesar_comercio
 from processors.estadistica import procesar_estadistica
 from processors.lineas_accion import procesar_lineas_accion
 from processors.micmac import ui_micmac, escribir_cuadrantes_manual
+from processors.pareto import procesar_pareto
 
 
 st.title("Generador de info_engine")
@@ -19,6 +20,7 @@ archivo_comunidad = st.file_uploader("Subir Comunidad", type=["xlsx"])
 archivo_comercio = st.file_uploader("Subir Comercio", type=["xlsx"])
 archivo_estadistica = st.file_uploader("Subir Estadística", type=["xlsx"])
 archivo_lineas = st.file_uploader("Subir Líneas de Acción", type=["xlsx"])
+archivo_pareto = st.file_uploader("Subir Pareto", type=["xlsx"])
 
 
 # -----------------------------
@@ -32,7 +34,7 @@ poder, conflicto, resultados, autonomas = ui_micmac()
 # -----------------------------
 if st.button("Generar info_engine"):
 
-    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas:
+    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto:
         st.error("Debe subir todos los archivos")
     else:
         try:
@@ -45,6 +47,7 @@ if st.button("Generar info_engine"):
             procesar_comercio(df_comercio, wb)
             procesar_estadistica(archivo_estadistica, wb)
             procesar_lineas_accion(archivo_lineas, wb)
+            procesar_pareto(archivo_pareto, wb)
 
             # -----------------------------
             # PROCESAR MICMAC MANUAL

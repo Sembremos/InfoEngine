@@ -48,15 +48,7 @@ if st.button("Generar info_engine"):
             procesar_estadistica(archivo_estadistica, wb)
             procesar_lineas_accion(archivo_lineas, wb)
             procesar_pareto(archivo_pareto, wb)
-
-            # -----------------------------
-            # PROCESAR MICMAC MANUAL
-            # -----------------------------
-            poder = [x.strip() for x in poder_input.split("\n") if x.strip()]
-            conflicto = [x.strip() for x in conflicto_input.split("\n") if x.strip()]
-            resultados = [x.strip() for x in resultados_input.split("\n") if x.strip()]
-            autonomas = [x.strip() for x in autonomas_input.split("\n") if x.strip()]
-
+            # MICMAC (YA LISTO)
             escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas)
 
             # -----------------------------

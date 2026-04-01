@@ -33,6 +33,14 @@ def procesar_pareto(archivo_pareto, wb_destino):
     ws_pareto = wb_destino["pareto"]
 
     # -----------------------------
+    # DESCOMBINAR CELDAS EN HOJA PARETO
+    # -----------------------------
+    merged_ranges = list(ws_pareto.merged_cells.ranges)
+    
+    for merged in merged_ranges:
+        ws_pareto.unmerge_cells(str(merged))
+
+    # -----------------------------
     # TABLA COMPLETA → HOJA PARETO
     # -----------------------------
     fila_excel = 2

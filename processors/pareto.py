@@ -37,7 +37,25 @@ def procesar_pareto(archivo_pareto, wb_destino):
     # -----------------------------
     ws = wb_destino["Hoja1"]
 
-    fila_excel = 2  # empieza en A2
+    # -----------------------------
+    # DESCOMBINAR CELDAS EN RANGOS USADOS
+    # -----------------------------
+    merged_ranges = list(ws.merged_cells.ranges)
+    
+    for merged in merged_ranges:
+        min_col = merged.min_col
+        max_col = merged.max_col
+        min_row = merged.min_row
+        max_row = merged.max_row
+    
+        # si el merge cae dentro del área donde vas a escribir
+        if (
+            (2 <= min_row <= 117) or
+            (2 <= max_row <= 117)
+        ):
+            ws.unmerge_cells(str(merged))
+            
+    fila_excel = 1  # empieza en A2
 
     for _, row in df_filtrado.iterrows():
 
@@ -53,7 +71,7 @@ def procesar_pareto(archivo_pareto, wb_destino):
         ws[f"F{fila_excel}"] = row.iloc[5]  # acumulado
         ws[f"G{fila_excel}"] = row.iloc[6]  # segmento
 
-        fila_excel += 1
+        fila_excel += 2
 
     # -----------------------------
     # BUSCAR TOTAL

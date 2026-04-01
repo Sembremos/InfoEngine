@@ -69,16 +69,4 @@ def procesar_pareto(archivo_pareto, wb_destino):
         ws[f"C{fila}"] = item
         fila += 1
 
-    # -----------------------------
-    # COPIAR GRÁFICO
-    # -----------------------------
-    try:
-        wb_pareto = load_workbook(archivo_pareto)
-        ws_pareto = wb_pareto.active
-
-        if ws_pareto._charts:
-            chart = ws_pareto._charts[0]
-            ws.add_chart(chart, "E95")
-
-    except Exception as e:
-        print("No se pudo copiar el gráfico:", e)
+   

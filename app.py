@@ -7,7 +7,7 @@ from processors.comunidad import procesar_comunidad
 from processors.comercio import procesar_comercio
 from processors.estadistica import procesar_estadistica
 from processors.lineas_accion import procesar_lineas_accion
-from processors.micmac import escribir_cuadrantes_manual
+from processors.micmac import ui_micmac, escribir_cuadrantes_manual
 
 
 st.title("Generador de info_engine")
@@ -22,14 +22,9 @@ archivo_lineas = st.file_uploader("Subir Líneas de Acción", type=["xlsx"])
 
 
 # -----------------------------
-# MICMAC MANUAL
+# MICMAC
 # -----------------------------
-st.subheader("Clasificación MICMAC (Manual)")
-
-poder_input = st.text_area("Poder (una por línea)")
-conflicto_input = st.text_area("Conflicto (una por línea)")
-resultados_input = st.text_area("Resultados (una por línea)")
-autonomas_input = st.text_area("Autónomas (una por línea)")
+poder, conflicto, resultados, autonomas = ui_micmac()
 
 
 # -----------------------------

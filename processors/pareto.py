@@ -30,7 +30,7 @@ def procesar_pareto(archivo_pareto, wb_destino):
     # HOJAS
     # -----------------------------
     ws_hoja1 = wb_destino["Hoja1"]
-    ws_pareto = wb_destino["Pareto"]
+    ws_pareto = wb_destino["pareto"]
 
     # -----------------------------
     # TABLA COMPLETA → HOJA PARETO

@@ -9,6 +9,7 @@ from processors.estadistica import procesar_estadistica
 from processors.lineas_accion import procesar_lineas_accion
 from processors.micmac import ui_micmac, escribir_cuadrantes_manual
 from processors.pareto import procesar_pareto
+from processors.triangulo import procesar_triangulo
 
 
 st.title("Generador de info_engine")
@@ -21,7 +22,7 @@ archivo_comercio = st.file_uploader("Subir Comercio", type=["xlsx"])
 archivo_estadistica = st.file_uploader("Subir Estadística", type=["xlsx"])
 archivo_lineas = st.file_uploader("Subir Líneas de Acción", type=["xlsx"])
 archivo_pareto = st.file_uploader("Subir Pareto", type=["xlsx"])
-
+archivo_triangulo = st.file_uploader("Subir Triángulo", type=["xlsx"])
 
 # -----------------------------
 # MICMAC
@@ -34,7 +35,7 @@ poder, conflicto, resultados, autonomas = ui_micmac()
 # -----------------------------
 if st.button("Generar info_engine"):
 
-    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto:
+    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto or not archivo_triangulo:
         st.error("Debe subir todos los archivos")
     else:
         try:
@@ -48,8 +49,8 @@ if st.button("Generar info_engine"):
             procesar_estadistica(archivo_estadistica, wb)
             procesar_lineas_accion(archivo_lineas, wb)
             procesar_pareto(archivo_pareto, wb)
-            # MICMAC (YA LISTO)
             escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas)
+            procesar_triangulo(archivo_triangulo, wb)
 
             # -----------------------------
             # EXPORTAR

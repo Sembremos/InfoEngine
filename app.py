@@ -56,6 +56,7 @@ if st.button("Generar info_engine"):
             # EXPORTAR
             # -----------------------------
             archivo_salida = io.BytesIO()
+            wb.calculation.fullCalcOnLoad = True
             wb.save(archivo_salida)
             archivo_salida.seek(0)
 

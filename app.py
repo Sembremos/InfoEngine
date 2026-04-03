@@ -52,6 +52,23 @@ if st.button("Generar info_engine"):
             escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas)
             procesar_triangulo(archivo_triangulo, wb)
 
+
+            hoja_destino = wb["Hoja1"]
+
+            formula = '''=ORDENAR(
+              FILTRAR(
+                APILARV(
+                  SI(H124:H140="R";G124:G140;"");
+                  SI(J124:J140="R";I124:I140;"")
+                );
+                APILARV(
+                  SI(H124:H140="R";G124:G140;"");
+                  SI(J124:J140="R";I124:I140;"")
+                )<>""
+              )
+            )'''
+            
+            hoja_destino["K124"] = formula
             # -----------------------------
             # EXPORTAR
             # -----------------------------

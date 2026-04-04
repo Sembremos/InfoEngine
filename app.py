@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
 import io
+import re
 
 from processors.comunidad import procesar_comunidad
 from processors.comercio import procesar_comercio
@@ -12,21 +13,56 @@ from processors.pareto import procesar_pareto
 from processors.triangulo import procesar_triangulo
 
 
-st.title("Generador de info_engine")
+st.title("Generador de SS-ENGINE")
 
-# -----------------------------s
+# -----------------------------
+# ESTILOS
+# -----------------------------
+def titulo_seccion(texto, color):
+    st.markdown(
+        f"""
+        <div style="
+            font-size:20px;
+            font-weight:bold;
+            color:white;
+            background-color:{color};
+            padding:8px;
+            border-radius:5px;
+            margin-top:10px;
+        ">
+            {texto}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# -----------------------------
 # CARGA DE ARCHIVOS
 # -----------------------------
-archivo_comunidad = st.file_uploader("Subir Comunidad", type=["xlsx"])
-archivo_comercio = st.file_uploader("Subir Comercio", type=["xlsx"])
-archivo_estadistica = st.file_uploader("Subir Estadística", type=["xlsx"])
-archivo_lineas = st.file_uploader("Subir Líneas de Acción", type=["xlsx"])
-archivo_pareto = st.file_uploader("Subir Pareto", type=["xlsx"])
-archivo_triangulo = st.file_uploader("Subir Triángulo", type=["xlsx"])
+titulo_seccion("Comunidad", "#1f77b4")
+archivo_comunidad = st.file_uploader("", type=["xlsx"], key="comunidad")
+
+titulo_seccion("Comercio", "#ff7f0e")
+archivo_comercio = st.file_uploader("", type=["xlsx"], key="comercio")
+
+titulo_seccion("Estadística", "#2ca02c")
+archivo_estadistica = st.file_uploader("", type=["xlsx"], key="estadistica")
+
+titulo_seccion("Líneas de Acción", "#d62728")
+archivo_lineas = st.file_uploader("", type=["xlsx"], key="lineas")
+
+titulo_seccion("Pareto", "#9467bd")
+archivo_pareto = st.file_uploader("", type=["xlsx"], key="pareto")
+
+titulo_seccion("Triángulo", "#8c564b")
+archivo_triangulo = st.file_uploader("", type=["xlsx"], key="triangulo")
+
 
 # -----------------------------
 # MICMAC
 # -----------------------------
+titulo_seccion("MICMAC", "#17becf")
 poder, conflicto, resultados, autonomas = ui_micmac()
 
 
@@ -52,8 +88,21 @@ if st.button("Generar info_engine"):
             escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas)
             procesar_triangulo(archivo_triangulo, wb)
 
+            # -----------------------------
+            # OBTENER NOMBRE DELEGACIÓN
+            # -----------------------------
+            hoja = wb["Hoja1"]
+            delegacion = hoja["B2"].value
 
-           # -----------------------------
+            if delegacion:
+                # limpiar texto para nombre de archivo
+                delegacion_limpia = re.sub(r'[^a-zA-Z0-9_-]', '_', str(delegacion))
+            else:
+                delegacion_limpia = "sin_nombre"
+
+            nombre_archivo = f"engine_{delegacion_limpia}.xlsx"
+
+            # -----------------------------
             # EXPORTAR
             # -----------------------------
             archivo_salida = io.BytesIO()
@@ -61,12 +110,12 @@ if st.button("Generar info_engine"):
             wb.save(archivo_salida)
             archivo_salida.seek(0)
 
-            st.success("Archivo generado correctamente")
+            st.success("Todo Bien con el archivo!!!!!")
 
             st.download_button(
                 label="Descargar info_engine",
                 data=archivo_salida,
-                file_name="info_engine_resultado.xlsx",
+                file_name=nombre_archivo,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 

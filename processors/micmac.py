@@ -175,7 +175,7 @@ def clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto):
     # -----------------------------
     # LIMPIAR COLUMNAS DESTINO
     # -----------------------------
-    for fila in range(123, 200):
+    for fila in range(123, 241):
         ws1[f"N{fila}"] = None  # Riesgos
         ws1[f"O{fila}"] = None  # Delitos
 
@@ -213,8 +213,3 @@ def clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto):
         ws1[f"O{fila_d}"] = d
         fila_d += 1
     
-
-    escribir(poder, "B")
-    escribir(conflicto, "C")
-    escribir(resultados, "D")
-    escribir(autonomas, "E")

@@ -201,11 +201,15 @@ def clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto):
     # -----------------------------
     fila_r = 123
     for r in lista_riesgos:
+        if fila_r > 140:
+            break
         ws1[f"N{fila_r}"] = r
         fila_r += 1
 
     fila_d = 123
     for d in lista_delitos:
+        if fila_d > 140:
+            break
         ws1[f"O{fila_d}"] = d
         fila_d += 1
     

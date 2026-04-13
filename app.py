@@ -8,7 +8,7 @@ from processors.comunidad import procesar_comunidad
 from processors.comercio import procesar_comercio
 from processors.estadistica import procesar_estadistica
 from processors.lineas_accion import procesar_lineas_accion
-from processors.micmac import ui_micmac, escribir_cuadrantes_manual
+from processors.micmac import ui_micmac, escribir_cuadrantes_manual, clasificar_y_escribir_riesgos_delitos
 from processors.pareto import procesar_pareto
 from processors.triangulo import procesar_triangulo
 

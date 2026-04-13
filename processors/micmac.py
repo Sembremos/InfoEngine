@@ -82,7 +82,7 @@ def obtener_problematicas():
         "ROBO A VIVIENDA (INTIMIDACION)",
         "ROBO A VIVIENDA (TACHA)",
         "ROBO DE BICICLETA",
-        "ROBO DE MOTOCICLETAS",
+        "ROBO DE MOTOCICLETAS/VEHICULOS(BAJONAZO)",
         "ROBO DE VEHICULOS",
         "SECUESTRO",
         "SUICIDIO",

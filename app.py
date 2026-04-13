@@ -86,6 +86,7 @@ if st.button("Generar info_engine"):
             procesar_lineas_accion(archivo_lineas, wb)
             procesar_pareto(archivo_pareto, wb)
             escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas)
+            clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto)
             procesar_triangulo(archivo_triangulo, wb)
 
             # -----------------------------

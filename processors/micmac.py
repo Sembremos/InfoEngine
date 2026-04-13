@@ -122,7 +122,6 @@ def ui_micmac():
     resultados = st.multiselect("Resultados", lista)
     autonomas = st.multiselect("Autónomas", lista)
 
-    # validación
     todas = poder + conflicto + resultados + autonomas
 
     if len(todas) != len(set(todas)):
@@ -133,7 +132,7 @@ def ui_micmac():
 
 
 # -----------------------------
-# ESCRIBIR EN EXCEL
+# ESCRIBIR CUADRANTES
 # -----------------------------
 def escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas):
 
@@ -141,75 +140,74 @@ def escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas):
 
     for col in ["B", "C", "D", "E"]:
         for fila in range(124, 141):
-            ws[f"{col}{fila}"] = None
+            try:
+                ws[f"{col}{fila}"].value = None
+            except:
+                pass
 
     def escribir(lista, columna):
         fila = 124
         for item in lista:
             if fila > 140:
                 break
-            ws[f"{columna}{fila}"] = item
+            try:
+                ws[f"{columna}{fila}"].value = item
+            except:
+                pass
             fila += 1
 
-#clasificador
+    escribir(poder, "B")
+    escribir(conflicto, "C")
+    escribir(resultados, "D")
+    escribir(autonomas, "E")
+
+
+# -----------------------------
+# CLASIFICADOR
+# -----------------------------
 def clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto):
 
     ws1 = wb["Hoja1"]
     ws2 = wb["Hoja2"]
 
-    # -----------------------------
-    # LEER LISTAS DESDE EXCEL
-    # -----------------------------
     delitos = []
-    for fila in range(3, 90):  # B3 a B89
+    for fila in range(3, 90):
         valor = ws2[f"B{fila}"].value
         if valor:
-            delitos.append(valor.strip())
+            delitos.append(valor.strip().upper())
 
     riesgos = []
-    for fila in range(92, 155):  # B92 a B154
+    for fila in range(92, 155):
         valor = ws2[f"B{fila}"].value
         if valor:
-            riesgos.append(valor.strip())
+            riesgos.append(valor.strip().upper())
 
-    # -----------------------------
-    # LIMPIAR COLUMNAS DESTINO
-    # -----------------------------
-    for fila in range(123, 241):
-        ws1[f"N{fila}"] = None  # Riesgos
-        ws1[f"O{fila}"] = None  # Delitos
+    # limpiar SOLO rango válido sin romper si hay merge
+    for fila in range(123, 141):
+        try:
+            ws1[f"N{fila}"].value = None
+            ws1[f"O{fila}"].value = None
+        except:
+            continue
 
-    # -----------------------------
-    # CLASIFICAR
-    # -----------------------------
     seleccionadas = poder + conflicto
 
-    lista_riesgos = []
-    lista_delitos = []
+    fila_r = 123
+    fila_d = 123
 
     for item in seleccionadas:
-        item_clean = item.strip()
+        item_clean = item.strip().upper()
 
-        if item_clean in riesgos:
-            lista_riesgos.append(item_clean)
+        if item_clean in riesgos and fila_r <= 140:
+            try:
+                ws1[f"N{fila_r}"].value = item
+                fila_r += 1
+            except:
+                pass
 
-        elif item_clean in delitos:
-            lista_delitos.append(item_clean)
-
-    # -----------------------------
-    # ESCRIBIR RESULTADOS
-    # -----------------------------
-    fila_r = 123
-    for r in lista_riesgos:
-        if fila_r > 140:
-            break
-        ws1[f"N{fila_r}"] = r
-        fila_r += 1
-
-    fila_d = 123
-    for d in lista_delitos:
-        if fila_d > 140:
-            break
-        ws1[f"O{fila_d}"] = d
-        fila_d += 1
-    
+        elif item_clean in delitos and fila_d <= 140:
+            try:
+                ws1[f"O{fila_d}"].value = item
+                fila_d += 1
+            except:
+                pass

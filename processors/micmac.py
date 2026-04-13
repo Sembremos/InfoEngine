@@ -151,6 +151,65 @@ def escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas):
             ws[f"{columna}{fila}"] = item
             fila += 1
 
+#clasificador
+def clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto):
+
+    ws1 = wb["Hoja1"]
+    ws2 = wb["Hoja2"]
+
+    # -----------------------------
+    # LEER LISTAS DESDE EXCEL
+    # -----------------------------
+    delitos = []
+    for fila in range(3, 90):  # B3 a B89
+        valor = ws2[f"B{fila}"].value
+        if valor:
+            delitos.append(valor.strip())
+
+    riesgos = []
+    for fila in range(92, 155):  # B92 a B154
+        valor = ws2[f"B{fila}"].value
+        if valor:
+            riesgos.append(valor.strip())
+
+    # -----------------------------
+    # LIMPIAR COLUMNAS DESTINO
+    # -----------------------------
+    for fila in range(123, 200):
+        ws1[f"N{fila}"] = None  # Riesgos
+        ws1[f"O{fila}"] = None  # Delitos
+
+    # -----------------------------
+    # CLASIFICAR
+    # -----------------------------
+    seleccionadas = poder + conflicto
+
+    lista_riesgos = []
+    lista_delitos = []
+
+    for item in seleccionadas:
+        item_clean = item.strip()
+
+        if item_clean in riesgos:
+            lista_riesgos.append(item_clean)
+
+        elif item_clean in delitos:
+            lista_delitos.append(item_clean)
+
+    # -----------------------------
+    # ESCRIBIR RESULTADOS
+    # -----------------------------
+    fila_r = 123
+    for r in lista_riesgos:
+        ws1[f"N{fila_r}"] = r
+        fila_r += 1
+
+    fila_d = 123
+    for d in lista_delitos:
+        ws1[f"O{fila_d}"] = d
+        fila_d += 1
+    
+
     escribir(poder, "B")
     escribir(conflicto, "C")
     escribir(resultados, "D")

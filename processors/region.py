@@ -1,19 +1,42 @@
-def normalizar(valor):
-    if not valor:
+import re
+
+
+def normalizar_texto(texto):
+    if not texto:
         return None
-    return str(valor).upper().strip()
+    return str(texto).strip().upper()
+
+
+def obtener_codigo_desde_hoja2(wb, canton):
+    """
+    Busca el cantón en Hoja2 (columna A)
+    y retorna el código de delegación (columna B)
+    """
+
+    hoja2 = wb["Hoja2"]
+    canton = normalizar_texto(canton)
+
+    # Rango A159:B256
+    for fila in range(159, 257):
+        canton_excel = hoja2[f"A{fila}"].value
+        codigo_excel = hoja2[f"B{fila}"].value
+
+        if normalizar_texto(canton_excel) == canton:
+            return normalizar_texto(codigo_excel)
+
+    return None
 
 
 def mapear_region_por_codigo(codigo):
     """
-    Mapea directamente códigos tipo:
+    Mapea códigos tipo:
     D1, D2, ..., D82 E, D82 O
     """
 
     if not codigo:
         return None
 
-    codigo = normalizar(codigo)
+    codigo = normalizar_texto(codigo)
 
     # --- REGION 1 ---
     if codigo in [f"D{i}" for i in range(0, 26)]:
@@ -67,12 +90,26 @@ def mapear_region_por_codigo(codigo):
 
 
 def escribir_region(wb):
-    hoja = wb["Hoja1"]
+    """
+    Flujo:
+    1. Lee cantón desde B2
+    2. Busca código en Hoja2
+    3. Mapea región
+    4. Escribe en D2
+    """
 
-    valor_b3 = hoja["B3"].value
-    codigo = normalizar(valor_b3)
+    hoja1 = wb["Hoja1"]
+
+    canton = hoja1["B2"].value
+    codigo = obtener_codigo_desde_hoja2(wb, canton)
+
+    if not codigo:
+        hoja1["D2"] = "ERROR"
+        return
 
     region = mapear_region_por_codigo(codigo)
 
     if region is not None:
-        hoja["D2"] = region
+        hoja1["D2"] = region
+    else:
+        hoja1["D2"] = "ERROR"

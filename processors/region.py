@@ -1,19 +1,24 @@
 import re
 
 def obtener_numero_delegacion(valor):
-    """
-    Extrae el número desde formatos como:
-    D33, D28, D82 E, D82 O, D3
-    """
     if not valor:
         return None
 
-    match = re.search(r'\d+', str(valor))
+    texto = str(valor).upper().strip()
+
+    # eliminar espacios internos tipo "D82 E"
+    texto = texto.replace(" ", "")
+
+    # quitar la D al inicio
+    if texto.startswith("D"):
+        texto = texto[1:]
+
+    # tomar solo los números iniciales
+    match = re.match(r'\d+', texto)
     if match:
         return int(match.group())
-    
-    return None
 
+    return None
 
 def mapear_region(numero):
     """

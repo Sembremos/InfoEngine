@@ -244,10 +244,10 @@ def clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto):
         if val:
             riesgos.append(normalizar(val))
 
-    for fila in range(123, 141):
+    for fila in range(124, 141):
         try:
-            ws1[f"N{fila}"].value = None
-            ws1[f"O{fila}"].value = None
+            ws1[f"K{fila}"].value = None  # Riesgos
+            ws1[f"L{fila}"].value = None  # Delitos
         except:
             pass
 
@@ -262,22 +262,22 @@ def clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto):
         elif item_norm in delitos:
             lista_delitos.append(item)
 
-    fila_r = 123
+    fila_r = 124
     for r in lista_riesgos:
         if fila_r > 140:
             break
         try:
-            ws1[f"N{fila_r}"].value = r
+            ws1[f"K{fila_r}"].value = r
             fila_r += 1
         except:
             pass
 
-    fila_d = 123
+    fila_d = 124
     for d in lista_delitos:
         if fila_d > 140:
             break
         try:
-            ws1[f"O{fila_d}"].value = d
+            ws1[f"L{fila_d}"].value = d
             fila_d += 1
         except:
             pass

@@ -170,44 +170,63 @@ def clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto):
     ws1 = wb["Hoja1"]
     ws2 = wb["Hoja2"]
 
+    def normalizar(texto):
+        return (
+            texto.strip()
+            .upper()
+            .replace("Á", "A")
+            .replace("É", "E")
+            .replace("Í", "I")
+            .replace("Ó", "O")
+            .replace("Ú", "U")
+        )
+
     delitos = []
     for fila in range(3, 90):
-        valor = ws2[f"B{fila}"].value
-        if valor:
-            delitos.append(valor.strip().upper())
+        val = ws2[f"B{fila}"].value
+        if val:
+            delitos.append(normalizar(val))
 
     riesgos = []
     for fila in range(92, 155):
-        valor = ws2[f"B{fila}"].value
-        if valor:
-            riesgos.append(valor.strip().upper())
+        val = ws2[f"B{fila}"].value
+        if val:
+            riesgos.append(normalizar(val))
 
-    # limpiar SOLO rango válido sin romper si hay merge
     for fila in range(123, 141):
         try:
             ws1[f"N{fila}"].value = None
             ws1[f"O{fila}"].value = None
         except:
-            continue
+            pass
 
-    seleccionadas = poder + conflicto
+    lista_riesgos = []
+    lista_delitos = []
+
+    for item in poder + conflicto:
+        item_norm = normalizar(item)
+
+        if item_norm in riesgos:
+            lista_riesgos.append(item)
+        elif item_norm in delitos:
+            lista_delitos.append(item)
 
     fila_r = 123
+    for r in lista_riesgos:
+        if fila_r > 140:
+            break
+        try:
+            ws1[f"N{fila_r}"].value = r
+            fila_r += 1
+        except:
+            pass
+
     fila_d = 123
-
-    for item in seleccionadas:
-        item_clean = item.strip().upper()
-
-        if item_clean in riesgos and fila_r <= 140:
-            try:
-                ws1[f"N{fila_r}"].value = item
-                fila_r += 1
-            except:
-                pass
-
-        elif item_clean in delitos and fila_d <= 140:
-            try:
-                ws1[f"O{fila_d}"].value = item
-                fila_d += 1
-            except:
-                pass
+    for d in lista_delitos:
+        if fila_d > 140:
+            break
+        try:
+            ws1[f"O{fila_d}"].value = d
+            fila_d += 1
+        except:
+            pass

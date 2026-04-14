@@ -11,6 +11,7 @@ from processors.lineas_accion import procesar_lineas_accion
 from processors.micmac import ui_micmac, escribir_cuadrantes_manual, clasificar_y_escribir_riesgos_delitos
 from processors.pareto import procesar_pareto
 from processors.triangulo import procesar_triangulo
+from processors.region import escribir_region
 
 
 st.title("Generador de SS-ENGINE")
@@ -88,6 +89,7 @@ if st.button("Generar info_engine"):
             escribir_cuadrantes_manual(wb, poder, conflicto, resultados, autonomas)
             clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto)
             procesar_triangulo(archivo_triangulo, wb)
+            escribir_region(wb)
 
             # -----------------------------
             # OBTENER NOMBRE DELEGACIÓN

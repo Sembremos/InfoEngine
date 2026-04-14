@@ -4,19 +4,13 @@ def obtener_numero_delegacion(valor):
     if not valor:
         return None
 
-    texto = str(valor).upper().strip()
+    texto = str(valor)
 
-    # eliminar espacios internos tipo "D82 E"
-    texto = texto.replace(" ", "")
+    # Busca cualquier número dentro del texto (más confiable)
+    numeros = re.findall(r'\d+', texto)
 
-    # quitar la D al inicio
-    if texto.startswith("D"):
-        texto = texto[1:]
-
-    # tomar solo los números iniciales
-    match = re.match(r'\d+', texto)
-    if match:
-        return int(match.group())
+    if numeros:
+        return int(numeros[0])  # toma el primer número completo
 
     return None
 
@@ -58,7 +52,7 @@ def mapear_region(numero):
     elif numero in [70,84,85]:
         return 11
 
-    elif numero in [89,93,58,59,95]:
+    elif numero in [89,93,58,59,98]:
         return 12
 
     else:

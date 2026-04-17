@@ -101,6 +101,11 @@ def procesar_pareto(archivo_pareto, wb_destino):
             break
         ws_hoja1[f"C{fila}"] = item
         fila += 1
+    # -----------------------------
+    # NUEVAS FUNCIONES (DESGLOSE)
+    # -----------------------------
+    extraer_totales_desglose(df_desglose, ws_hoja1)
+    escribir_frecuencias_problematicas(df_desglose, ws_hoja1)
 
 #____________________ F2---- extraccion
 
@@ -203,9 +208,4 @@ def escribir_frecuencias_problematicas(df_desglose, ws_hoja1):
                 )
 
 
-    # -----------------------------
-    # NUEVAS FUNCIONES
-    # -----------------------------
-    extraer_totales_desglose(df_desglose, ws_hoja1)
-    escribir_frecuencias_problematicas(df_desglose, ws_hoja1)
   

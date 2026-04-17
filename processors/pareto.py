@@ -8,6 +8,7 @@ from openpyxl import load_workbook
 def procesar_pareto(archivo_pareto, wb_destino):
 
     df = pd.read_excel(archivo_pareto)
+    df_desglose = pd.read_excel(archivo_pareto, sheet_name="Desglose")
     df.columns = [str(c).strip().upper() for c in df.columns]
 
     col_categoria = "CATEGORIA"
@@ -154,8 +155,8 @@ def escribir_frecuencias_problematicas(df_desglose, ws_hoja1):
         return
 
     # columnas destino
-    columnas_comunidad = [78, 80, 81]  # BZ, CB, CD
-    columnas_comercio = [79, 81, 83]   # CA, CC, CE
+    columnas_comunidad = [78, 80, 82]
+    columnas_comercio = [79, 81, 83]
 
     for fila in range(242, 254):
 
@@ -202,5 +203,9 @@ def escribir_frecuencias_problematicas(df_desglose, ws_hoja1):
                 )
 
 
-
+    # -----------------------------
+    # NUEVAS FUNCIONES
+    # -----------------------------
+    extraer_totales_desglose(df_desglose, ws_hoja1)
+    escribir_frecuencias_problematicas(df_desglose, ws_hoja1)
   

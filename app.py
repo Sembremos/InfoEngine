@@ -12,6 +12,7 @@ from processors.micmac import ui_micmac, escribir_cuadrantes_manual, clasificar_
 from processors.pareto import procesar_pareto
 from processors.triangulo import procesar_triangulo
 from processors.region import escribir_region
+from processors.micmac_datos import MicMac_Datos
 
 
 st.title("Generador de SS-ENGINE")
@@ -72,7 +73,7 @@ poder, conflicto, resultados, autonomas = ui_micmac()
 # -----------------------------
 if st.button("Generar info_engine"):
 
-    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto or not archivo_triangulo:
+    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto or not archivo_triangulo or not archivo_micmac_excel:
         st.error("Debe subir todos los archivos")
     else:
         try:
@@ -90,6 +91,7 @@ if st.button("Generar info_engine"):
             clasificar_y_escribir_riesgos_delitos(wb, poder, conflicto)
             procesar_triangulo(archivo_triangulo, wb)
             escribir_region(wb)
+            MicMac_Datos(archivo_micmac_excel, wb)
 
             # -----------------------------
             # OBTENER NOMBRE DELEGACIÓN

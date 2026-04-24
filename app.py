@@ -67,6 +67,16 @@ archivo_triangulo = st.file_uploader("", type=["xlsx"], key="triangulo")
 titulo_seccion("MICMAC", "#17becf")
 poder, conflicto, resultados, autonomas = ui_micmac()
 
+# -----------------------------
+# MICMAC
+# -----------------------------
+titulo_seccion("MICMAC", "#17becf")
+poder, conflicto, resultados, autonomas = ui_micmac()
+
+# NUEVO MICMAC EXCEL
+titulo_seccion("MICMAC EXCEL", "#0e9aa7")
+archivo_micmac_excel = st.file_uploader("", type=["xlsx"], key="micmac_excel")
+
 
 # -----------------------------
 # BOTÓN PRINCIPAL

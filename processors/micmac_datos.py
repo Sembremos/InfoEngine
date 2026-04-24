@@ -1,6 +1,5 @@
 import pandas as pd
 import re
-from openpyxl import load_workbook
 
 
 def normalizar(texto):
@@ -18,10 +17,27 @@ def normalizar(texto):
 def MicMac_Datos(archivo_micmac, wb):
 
     # =============================
-    # CARGA HOJAS
+    # CARGA HOJAS (DINÁMICA)
     # =============================
-    df_matriz = pd.read_excel(archivo_micmac, sheet_name="MATRIZ", header=None)
-    df_desc = pd.read_excel(archivo_micmac, sheet_name="DESCRIPTORES")
+    xls = pd.ExcelFile(archivo_micmac)
+
+    hoja_desc = None
+    hoja_matriz = None
+
+    for nombre in xls.sheet_names:
+        nombre_limpio = nombre.strip().upper()
+
+        if "DESCRIPTOR" in nombre_limpio:
+            hoja_desc = nombre
+
+        if "MATRIZ" in nombre_limpio:
+            hoja_matriz = nombre
+
+    if hoja_desc is None or hoja_matriz is None:
+        raise Exception(f"Hojas no encontradas. Disponibles: {xls.sheet_names}")
+
+    df_desc = pd.read_excel(xls, sheet_name=hoja_desc)
+    df_matriz = pd.read_excel(xls, sheet_name=hoja_matriz, header=None)
 
     hoja_engine = wb["Hoja1"]
 
@@ -30,11 +46,10 @@ def MicMac_Datos(archivo_micmac, wb):
     # =============================
     instituciones = []
 
-    # header fijo en E8
     col_inicio = 4  # E
     col_fin = 7     # H
 
-    for i in range(9, len(df_matriz)):  # debajo del header
+    for i in range(9, len(df_matriz)):
         fila = df_matriz.iloc[i, col_inicio:col_fin+1]
 
         valor = " ".join([str(x) for x in fila if pd.notna(x)]).strip()
@@ -44,10 +59,8 @@ def MicMac_Datos(archivo_micmac, wb):
 
         instituciones.append(valor)
 
-    # eliminar duplicados manteniendo orden
     instituciones_unicas = list(dict.fromkeys(instituciones))
 
-    # escribir en excel
     for idx, inst in enumerate(instituciones_unicas[:10]):
         hoja_engine[f"B{150 + idx}"] = inst
 
@@ -73,28 +86,29 @@ def MicMac_Datos(archivo_micmac, wb):
             hoja_engine[f"C{150 + i}"] = fecha
 
     # =============================
-    # 2. MATRIZ MICMAC
+    # 2. DETECTAR MATRIZ MICMAC
     # =============================
-
-    # detectar fila encabezado (códigos tipo CON.DROG)
     fila_header = None
 
     for i in range(len(df_matriz)):
         fila = df_matriz.iloc[i]
-
         valores = [str(x) for x in fila if pd.notna(x)]
 
-        # si detecta varios códigos tipo "XXX.XXX"
-        count_codigos = sum(1 for v in valores if re.match(r'^[A-Z]+\.[A-Z]+', v))
+        count_codigos = sum(
+            1 for v in valores
+            if isinstance(v, str) and "." in v
+        )
 
         if count_codigos >= 3:
             fila_header = i
             break
 
     if fila_header is None:
-        return  # no rompe el flujo
+        return
 
-    # columnas desde B en adelante
+    # =============================
+    # EXTRAER MATRIZ
+    # =============================
     col_inicio = 1
 
     encabezados = []
@@ -109,11 +123,15 @@ def MicMac_Datos(archivo_micmac, wb):
 
     size = len(encabezados)
 
-    # matriz
-    matriz = df_matriz.iloc[fila_header+1:fila_header+1+size, col_inicio:col_inicio+size]
+    matriz = df_matriz.iloc[
+        fila_header + 1 : fila_header + 1 + size,
+        col_inicio : col_inicio + size
+    ]
 
-    # columna A (problemas influyentes)
-    problemas_fila = df_matriz.iloc[fila_header+1:fila_header+1+size, 0].tolist()
+    problemas_fila = df_matriz.iloc[
+        fila_header + 1 : fila_header + 1 + size,
+        0
+    ].tolist()
 
     # =============================
     # MAPEO DESCRIPTORES
@@ -128,7 +146,7 @@ def MicMac_Datos(archivo_micmac, wb):
             mapa_desc[str(corto).strip()] = str(largo).strip()
 
     # =============================
-    # PROBLEMAS DE INFOENGINE
+    # PROBLEMAS INFOENGINE
     # =============================
     problemas_engine = []
 
@@ -148,14 +166,13 @@ def MicMac_Datos(archivo_micmac, wb):
     ]
 
     # =============================
-    # PROCESO PRINCIPAL
+    # PROCESAMIENTO
     # =============================
     for idx_col, problema_header in enumerate(encabezados):
 
         if idx_col >= len(columnas_destino):
             break
 
-        # convertir a nombre completo
         problema_largo = mapa_desc.get(problema_header, problema_header)
 
         if normalizar(problema_largo) not in problemas_engine_norm:
@@ -173,9 +190,7 @@ def MicMac_Datos(archivo_micmac, wb):
                 problema_largo_inf = mapa_desc.get(problema_corto, problema_corto)
                 influyentes.append(problema_largo_inf)
 
-        # eliminar duplicados
         influyentes = list(dict.fromkeys(influyentes))
 
-        # escribir max 30
         for i, val in enumerate(influyentes[:30]):
             hoja_engine[f"{col_destino}{247 + i}"] = val

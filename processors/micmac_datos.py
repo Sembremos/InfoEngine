@@ -17,7 +17,7 @@ def normalizar(texto):
 def MicMac_Datos(archivo_micmac, wb):
 
     # =============================
-    # CARGA HOJAS (DINÁMICA)
+    # CARGA HOJAS
     # =============================
     xls = pd.ExcelFile(archivo_micmac)
 
@@ -34,7 +34,7 @@ def MicMac_Datos(archivo_micmac, wb):
             hoja_matriz = nombre
 
     if hoja_desc is None or hoja_matriz is None:
-        raise Exception(f"Hojas no encontradas. Disponibles: {xls.sheet_names}")
+        raise Exception(f"Hojas no encontradas: {xls.sheet_names}")
 
     df_desc = pd.read_excel(xls, sheet_name=hoja_desc)
     df_matriz = pd.read_excel(xls, sheet_name=hoja_matriz, header=None)
@@ -65,7 +65,7 @@ def MicMac_Datos(archivo_micmac, wb):
         hoja_engine[f"B{150 + idx}"] = inst
 
     # =============================
-    # FECHA
+    # 2. FECHA
     # =============================
     fecha = None
 
@@ -86,7 +86,7 @@ def MicMac_Datos(archivo_micmac, wb):
             hoja_engine[f"C{150 + i}"] = fecha
 
     # =============================
-    # 2. DETECTAR MATRIZ MICMAC
+    # 3. DETECTAR MATRIZ MICMAC
     # =============================
     fila_header = None
 
@@ -134,7 +134,7 @@ def MicMac_Datos(archivo_micmac, wb):
     ].tolist()
 
     # =============================
-    # MAPEO DESCRIPTORES
+    # 4. MAPEO DESCRIPTORES
     # =============================
     mapa_desc = {}
 
@@ -146,25 +146,24 @@ def MicMac_Datos(archivo_micmac, wb):
             mapa_desc[str(corto).strip()] = str(largo).strip()
 
     # =============================
-    # PROBLEMAS INFOENGINE
+    # 5. PROBLEMAS POR LÍNEA (B,C,D)
     # =============================
     problemas_engine_por_linea = []
 
     for fila in range(242, 254):
         problemas_linea = []
-    
+
         for col in ["B", "C", "D"]:
             val = hoja_engine[f"{col}{fila}"].value
             if val:
                 problemas_linea.append(val)
-    
-        # normalizados por línea
+
         problemas_engine_por_linea.append(
             [normalizar(x) for x in problemas_linea]
         )
 
     # =============================
-    # COLUMNAS DESTINO
+    # 6. COLUMNAS DESTINO
     # =============================
     columnas_destino = [
         "G", "M", "S", "Y", "AE", "AK",
@@ -172,38 +171,36 @@ def MicMac_Datos(archivo_micmac, wb):
     ]
 
     # =============================
-    # PROCESAMIENTO
+    # 7. PROCESAMIENTO FINAL
     # =============================
-    for idx_col, problema_header in enumerate(encabezados):
-
-        if idx_col >= len(columnas_destino):
-            break
-
-        problema_largo = mapa_desc.get(problema_header, problema_header)
-
-        for idx_linea, problemas_linea_norm in enumerate(problemas_engine_por_linea):
+    for idx_linea, problemas_linea_norm in enumerate(problemas_engine_por_linea):
 
         if idx_linea >= len(columnas_destino):
             break
-    
-        if normalizar(problema_largo) not in problemas_linea_norm:
-            continue
-    
+
         col_destino = columnas_destino[idx_linea]
-
-        col_destino = columnas_destino[idx_col]
-
         influyentes = []
 
-        for i in range(size):
-            valor = matriz.iloc[i, idx_col]
+        # recorrer encabezados de la matriz
+        for idx_col, problema_header in enumerate(encabezados):
 
-            if valor in [2, 3]:
-                problema_corto = problemas_fila[i]
-                problema_largo_inf = mapa_desc.get(problema_corto, problema_corto)
-                influyentes.append(problema_largo_inf)
+            problema_largo = mapa_desc.get(problema_header, problema_header)
 
+            if normalizar(problema_largo) not in problemas_linea_norm:
+                continue
+
+            # buscar influencias
+            for i in range(size):
+                valor = matriz.iloc[i, idx_col]
+
+                if valor in [2, 3]:
+                    problema_corto = problemas_fila[i]
+                    problema_largo_inf = mapa_desc.get(problema_corto, problema_corto)
+                    influyentes.append(problema_largo_inf)
+
+        # eliminar duplicados
         influyentes = list(dict.fromkeys(influyentes))
 
+        # escribir máximo 30
         for i, val in enumerate(influyentes[:30]):
             hoja_engine[f"{col_destino}{247 + i}"] = val

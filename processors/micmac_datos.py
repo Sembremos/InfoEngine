@@ -148,14 +148,20 @@ def MicMac_Datos(archivo_micmac, wb):
     # =============================
     # PROBLEMAS INFOENGINE
     # =============================
-    problemas_engine = []
+    problemas_engine_por_linea = []
 
-    for i in range(242, 254):
-        val = hoja_engine[f"B{i}"].value
-        if val:
-            problemas_engine.append(val)
-
-    problemas_engine_norm = [normalizar(x) for x in problemas_engine]
+    for fila in range(242, 254):
+        problemas_linea = []
+    
+        for col in ["B", "C", "D"]:
+            val = hoja_engine[f"{col}{fila}"].value
+            if val:
+                problemas_linea.append(val)
+    
+        # normalizados por línea
+        problemas_engine_por_linea.append(
+            [normalizar(x) for x in problemas_linea]
+        )
 
     # =============================
     # COLUMNAS DESTINO
@@ -175,8 +181,15 @@ def MicMac_Datos(archivo_micmac, wb):
 
         problema_largo = mapa_desc.get(problema_header, problema_header)
 
-        if normalizar(problema_largo) not in problemas_engine_norm:
+        for idx_linea, problemas_linea_norm in enumerate(problemas_engine_por_linea):
+
+        if idx_linea >= len(columnas_destino):
+            break
+    
+        if normalizar(problema_largo) not in problemas_linea_norm:
             continue
+    
+        col_destino = columnas_destino[idx_linea]
 
         col_destino = columnas_destino[idx_col]
 

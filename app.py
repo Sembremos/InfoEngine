@@ -61,11 +61,6 @@ titulo_seccion("Triángulo", "#8c564b")
 archivo_triangulo = st.file_uploader("", type=["xlsx"], key="triangulo")
 
 
-# -----------------------------
-# MICMAC
-# -----------------------------
-titulo_seccion("MICMAC", "#17becf")
-poder, conflicto, resultados, autonomas = ui_micmac()
 
 # -----------------------------
 # MICMAC

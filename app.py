@@ -13,6 +13,7 @@ from processors.pareto import procesar_pareto
 from processors.triangulo import procesar_triangulo
 from processors.region import escribir_region
 from processors.micmac_datos import MicMac_Datos
+from processors.metas import procesar_metas
 
 
 st.title("Generador de SS-ENGINE")
@@ -42,6 +43,9 @@ def titulo_seccion(texto, color):
 # -----------------------------
 # CARGA DE ARCHIVOS
 # -----------------------------
+titulo_seccion("Metas", "#bcbd22")
+archivo_metas = st.file_uploader("", type=["xlsx"], key="metas")
+
 titulo_seccion("Comunidad", "#1f77b4")
 archivo_comunidad = st.file_uploader("", type=["xlsx"], key="comunidad")
 
@@ -78,7 +82,7 @@ archivo_micmac_excel = st.file_uploader("", type=["xlsx"], key="micmac_excel")
 # -----------------------------
 if st.button("Generar info_engine"):
 
-    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto or not archivo_triangulo or not archivo_micmac_excel:
+    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto or not archivo_triangulo or not archivo_micmac_excel or not archivo_metas:
         st.error("Debe subir todos los archivos")
     else:
         try:
@@ -97,6 +101,7 @@ if st.button("Generar info_engine"):
             procesar_triangulo(archivo_triangulo, wb)
             escribir_region(wb)
             MicMac_Datos(archivo_micmac_excel, wb)
+            procesar_metas(archivo_metas, wb)
 
             # -----------------------------
             # OBTENER NOMBRE DELEGACIÓN

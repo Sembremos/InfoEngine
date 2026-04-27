@@ -43,9 +43,6 @@ def titulo_seccion(texto, color):
 # -----------------------------
 # CARGA DE ARCHIVOS
 # -----------------------------
-titulo_seccion("Metas", "#bcbd22")
-archivo_metas = st.file_uploader("", type=["xlsx"], key="metas")
-
 titulo_seccion("Comunidad", "#1f77b4")
 archivo_comunidad = st.file_uploader("", type=["xlsx"], key="comunidad")
 
@@ -82,7 +79,7 @@ archivo_micmac_excel = st.file_uploader("", type=["xlsx"], key="micmac_excel")
 # -----------------------------
 if st.button("Generar info_engine"):
 
-    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto or not archivo_triangulo or not archivo_micmac_excel or not archivo_metas:
+    if not archivo_comunidad or not archivo_comercio or not archivo_estadistica or not archivo_lineas or not archivo_pareto or not archivo_triangulo or not archivo_micmac_excel:
         st.error("Debe subir todos los archivos")
     else:
         try:
@@ -101,7 +98,7 @@ if st.button("Generar info_engine"):
             procesar_triangulo(archivo_triangulo, wb)
             escribir_region(wb)
             MicMac_Datos(archivo_micmac_excel, wb)
-            procesar_metas(archivo_metas, wb)
+            procesar_metas(wb)
 
             # -----------------------------
             # OBTENER NOMBRE DELEGACIÓN

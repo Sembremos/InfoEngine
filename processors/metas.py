@@ -99,7 +99,7 @@ def procesar_metas(wb):
         meta = int(row["Meta"])
         conta = int(row["Contabilidad"])
 
-        hoja[f"B{fila}"] = distrito
+        hoja[f"A{fila}"] = distrito
         hoja[f"C{fila}"] = meta
         hoja[f"D{fila}"] = conta
 

@@ -29,10 +29,11 @@ def procesar_metas(archivo_metas, wb):
     if not codigo:
         raise ValueError(f"No se encontró código para: {canton}")
 
+    # escribir código en B3
     hoja["B3"] = codigo
 
     # -----------------------------
-    # 3. BUSCAR HOJA CORRECTA
+    # 3. BUSCAR HOJA EN ARCHIVO METAS
     # -----------------------------
     xls = pd.ExcelFile(archivo_metas)
 
@@ -46,20 +47,39 @@ def procesar_metas(archivo_metas, wb):
         raise ValueError(f"No existe hoja para {codigo}")
 
     # -----------------------------
-    # 4. LEER DATA
+    # 4. LEER DATA (ROBUSTO)
     # -----------------------------
-    df = pd.read_excel(xls, sheet_name=hoja_objetivo)
+    df_raw = pd.read_excel(xls, sheet_name=hoja_objetivo, header=None)
 
+    fila_header = None
+
+    for i, row in df_raw.iterrows():
+        valores = [str(x).strip().upper() for x in row.values if pd.notna(x)]
+
+        if "TIPO" in valores and "DISTRITO" in valores:
+            fila_header = i
+            break
+
+    if fila_header is None:
+        raise ValueError("No se encontró el encabezado de la tabla")
+
+    df = pd.read_excel(xls, sheet_name=hoja_objetivo, header=fila_header)
+
+    # limpiar columnas
     df.columns = [str(c).strip() for c in df.columns]
+
+    # eliminar filas completamente vacías
     df = df.dropna(how="all")
-    
-    # 🔥 importante para celdas combinadas
+
+    # -----------------------------
+    # 🔥 MANEJO DE CELDAS COMBINADAS
+    # -----------------------------
     df["Tipo"] = df["Tipo"].ffill()
-    
-    # 🔥 eliminar filas basura sin distrito
+
+    # eliminar filas basura sin distrito
     df = df[df["Distrito"].notna()]
-    
-    # normalización
+
+    # normalizar texto
     df["Tipo"] = df["Tipo"].astype(str).str.strip().str.upper()
     df["Distrito"] = df["Distrito"].astype(str).str.strip()
 

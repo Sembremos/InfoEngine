@@ -14,6 +14,7 @@ from processors.triangulo import procesar_triangulo
 from processors.region import escribir_region
 from processors.micmac_datos import MicMac_Datos
 from processors.metas import procesar_metas
+from processors.poblacion import procesar_poblacion
 
 
 st.title("Generador de SS-ENGINE")
@@ -99,6 +100,8 @@ if st.button("Generar info_engine"):
             escribir_region(wb)
             MicMac_Datos(archivo_micmac_excel, wb)
             procesar_metas(wb)
+            procesar_metas(wb)
+            procesar_poblacion(wb)
 
             # -----------------------------
             # OBTENER NOMBRE DELEGACIÓN

@@ -6,7 +6,7 @@ def procesar_metas(archivo_metas, wb):
     hoja2 = wb["Hoja2"]
 
     # -----------------------------
-    # 1. OBTENER CANTON (B2)
+    # 1. OBTENER CANTON
     # -----------------------------
     canton = str(hoja["B2"].value).strip()
 
@@ -15,7 +15,6 @@ def procesar_metas(archivo_metas, wb):
 
     # -----------------------------
     # 2. BUSCAR CODIGO EN HOJA2
-    # A159:B256
     # -----------------------------
     codigo = None
 
@@ -28,35 +27,38 @@ def procesar_metas(archivo_metas, wb):
             break
 
     if not codigo:
-        raise ValueError(f"No se encontró código para el cantón: {canton}")
+        raise ValueError(f"No se encontró código para: {canton}")
 
-    # escribir codigo en B3
     hoja["B3"] = codigo
 
     # -----------------------------
-    # 3. BUSCAR HOJA EN ARCHIVO METAS
+    # 3. BUSCAR HOJA CORRECTA
     # -----------------------------
     xls = pd.ExcelFile(archivo_metas)
 
     hoja_objetivo = None
-
     for nombre in xls.sheet_names:
         if codigo in nombre:
             hoja_objetivo = nombre
             break
 
     if not hoja_objetivo:
-        raise ValueError(f"No existe hoja para código {codigo}")
+        raise ValueError(f"No existe hoja para {codigo}")
 
     # -----------------------------
     # 4. LEER DATA
     # -----------------------------
     df = pd.read_excel(xls, sheet_name=hoja_objetivo)
+
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
 
-    # normalizar tipo
+    # 🔥 CLAVE PARA CELDAS COMBINADAS
+    df["Tipo"] = df["Tipo"].ffill()
+
+    # limpiar texto
     df["Tipo"] = df["Tipo"].astype(str).str.strip().str.upper()
+    df["Distrito"] = df["Distrito"].astype(str).str.strip()
 
     # -----------------------------
     # 5. COMUNIDAD

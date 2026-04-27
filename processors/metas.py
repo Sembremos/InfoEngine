@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def procesar_metas(archivo_metas, wb):
+def procesar_metas(wb):
     hoja = wb["Hoja1"]
     hoja2 = wb["Hoja2"]
 
@@ -33,10 +33,12 @@ def procesar_metas(archivo_metas, wb):
     hoja["B3"] = codigo
 
     # -----------------------------
-    # 3. BUSCAR HOJA EN ARCHIVO METAS
+    # 3. LEER ARCHIVO LOCAL
     # -----------------------------
-    xls = pd.ExcelFile(archivo_metas)
+    ruta = "plantillas/Metas.xlsx"
+    xls = pd.ExcelFile(ruta)
 
+    # buscar hoja por código
     hoja_objetivo = None
     for nombre in xls.sheet_names:
         if codigo in nombre:
@@ -68,18 +70,16 @@ def procesar_metas(archivo_metas, wb):
     # limpiar columnas
     df.columns = [str(c).strip() for c in df.columns]
 
-    # eliminar filas completamente vacías
+    # eliminar filas vacías
     df = df.dropna(how="all")
 
-    # -----------------------------
-    # 🔥 MANEJO DE CELDAS COMBINADAS
-    # -----------------------------
+    # manejar celdas combinadas
     df["Tipo"] = df["Tipo"].ffill()
 
-    # eliminar filas basura sin distrito
+    # eliminar basura
     df = df[df["Distrito"].notna()]
 
-    # normalizar texto
+    # normalizar
     df["Tipo"] = df["Tipo"].astype(str).str.strip().str.upper()
     df["Distrito"] = df["Distrito"].astype(str).str.strip()
 

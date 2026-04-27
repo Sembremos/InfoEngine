@@ -52,11 +52,14 @@ def procesar_metas(archivo_metas, wb):
 
     df.columns = [str(c).strip() for c in df.columns]
     df = df.dropna(how="all")
-
-    # 🔥 CLAVE PARA CELDAS COMBINADAS
+    
+    # 🔥 importante para celdas combinadas
     df["Tipo"] = df["Tipo"].ffill()
-
-    # limpiar texto
+    
+    # 🔥 eliminar filas basura sin distrito
+    df = df[df["Distrito"].notna()]
+    
+    # normalización
     df["Tipo"] = df["Tipo"].astype(str).str.strip().str.upper()
     df["Distrito"] = df["Distrito"].astype(str).str.strip()
 

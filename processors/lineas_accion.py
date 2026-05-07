@@ -114,22 +114,26 @@ def procesar_lineas_accion(archivo_lineas, wb_info):
         # 5. COGESTORES
         if idx < len(columnas_cogestores):
             col = columnas_cogestores[idx]
-
+        
             fila = 5
             lista = []
-
+        
             while True:
                 accion = ws.cell(row=fila, column=2).value
                 cog = ws.cell(row=fila, column=7).value
-
+        
                 if not accion:
                     break
-
+        
                 if cog:
-                    lista.append(str(cog).strip())
-
+                    cog_limpio = str(cog).strip()
+        
+                    # evitar duplicados manteniendo orden
+                    if cog_limpio not in lista:
+                        lista.append(cog_limpio)
+        
                 fila += 1
-
+        
             texto_final = ", ".join(lista)
             ws_info.cell(row=262, column=col, value=texto_final)
 

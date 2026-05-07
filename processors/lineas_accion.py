@@ -112,11 +112,15 @@ def procesar_lineas_accion(archivo_lineas, wb_info):
 
         # -----------------------------
         # 5. COGESTORES
+        # -----------------------------
+        
         if idx < len(columnas_cogestores):
             col = columnas_cogestores[idx]
         
             fila = 5
-            lista = []
+        
+            lista_final = []
+            vistos = set()
         
             while True:
                 accion = ws.cell(row=fila, column=2).value
@@ -126,15 +130,32 @@ def procesar_lineas_accion(archivo_lineas, wb_info):
                     break
         
                 if cog:
-                    cog_limpio = str(cog).strip()
         
-                    # evitar duplicados manteniendo orden
-                    if cog_limpio not in lista:
-                        lista.append(cog_limpio)
+                    # separar por comas
+                    partes = str(cog).split(",")
+        
+                    for parte in partes:
+        
+                        # limpiar espacios
+                        limpio = parte.strip()
+        
+                        # eliminar numeraciones tipo "1-"
+                        limpio = re.sub(r'^\d+\s*-\s*', '', limpio)
+        
+                        # normalizar espacios internos
+                        limpio = re.sub(r'\s+', ' ', limpio)
+        
+                        # clave para comparar sin importar mayúsculas
+                        clave = limpio.lower()
+        
+                        # evitar vacíos y duplicados
+                        if limpio and clave not in vistos:
+                            vistos.add(clave)
+                            lista_final.append(limpio)
         
                 fila += 1
         
-            texto_final = ", ".join(lista)
+            texto_final = ", ".join(lista_final)
             ws_info.cell(row=262, column=col, value=texto_final)
 
     # -----------------------------

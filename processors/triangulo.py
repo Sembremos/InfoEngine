@@ -6,11 +6,90 @@ from openpyxl.utils import get_column_letter
 # ---------------------------------------------------------
 # NORMALIZAR TEXTO
 # ---------------------------------------------------------
+import re
+import unicodedata
+
+
+# ---------------------------------------------------------
+# NORMALIZAR TEXTO INTELIGENTE
+# ---------------------------------------------------------
 def normalizar_texto(texto):
+
     if not texto:
         return ""
 
-    return str(texto).strip().lower()
+    texto = str(texto).lower().strip()
+
+    # quitar tildes
+    texto = ''.join(
+        c for c in unicodedata.normalize('NFD', texto)
+        if unicodedata.category(c) != 'Mn'
+    )
+
+    # eliminar contenido entre parentesis
+    texto = re.sub(r'\(.*?\)', ' ', texto)
+
+    # eliminar caracteres raros
+    texto = re.sub(r'[^a-z0-9\s]', ' ', texto)
+
+    # palabras irrelevantes
+    stopwords = {
+        "de",
+        "del",
+        "la",
+        "las",
+        "el",
+        "los",
+        "en",
+        "y",
+        "situacion",
+        "publica",
+        "publico"
+    }
+
+    palabras = []
+
+    for palabra in texto.split():
+
+        # singular simple
+        if palabra.endswith("s") and len(palabra) > 4:
+            palabra = palabra[:-1]
+
+        if palabra not in stopwords:
+            palabras.append(palabra)
+
+    return " ".join(palabras)
+
+
+# ---------------------------------------------------------
+# COMPARAR PROBLEMÁTICAS
+# ---------------------------------------------------------
+def son_similares(texto1, texto2):
+
+    t1 = normalizar_texto(texto1)
+    t2 = normalizar_texto(texto2)
+
+    if not t1 or not t2:
+        return False
+
+    # exacta
+    if t1 == t2:
+        return True
+
+    # parcial
+    if t1 in t2 or t2 in t1:
+        return True
+
+    palabras1 = set(t1.split())
+    palabras2 = set(t2.split())
+
+    interseccion = palabras1.intersection(palabras2)
+
+    # si comparten suficientes palabras
+    if len(interseccion) >= 2:
+        return True
+
+    return False
 
 
 # ---------------------------------------------------------
@@ -170,18 +249,19 @@ def procesar_triangulo(archivo_triangulo, wb_destino):
             if not valor:
                 continue
 
-            problema = normalizar_texto(valor)
+            problema = valor
 
-            # Buscar coincidencia exacta con hoja
-            if problema in datos_hojas:
-
-                causas_socio.extend(
-                    datos_hojas[problema]["socio"]
-                )
-
-                causas_estructural.extend(
-                    datos_hojas[problema]["estructural"]
-                )
+            for nombre_hoja, datos in datos_hojas.items():
+            
+                if son_similares(problema, nombre_hoja):
+            
+                    causas_socio.extend(
+                        datos["socio"]
+                    )
+            
+                    causas_estructural.extend(
+                        datos["estructural"]
+                    )
 
         # ---------------------------------------------------------
         # LIMPIAR DUPLICADOS

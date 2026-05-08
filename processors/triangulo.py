@@ -7,7 +7,7 @@ def procesar_triangulo(archivo_triangulo, wb_destino):
     total_estructural = 0
 
     for hoja in wb_origen.worksheets:
-        # Buscar encabezados en fila 4
+        # Buscar encabezados en fila 4s
         fila_encabezados = 4
 
         col_socio = None

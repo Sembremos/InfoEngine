@@ -3,6 +3,7 @@ import pandas as pd
 from openpyxl import load_workbook
 import io
 import re
+import traceback
 
 from processors.comunidad import procesar_comunidad
 from processors.comercio import procesar_comercio
@@ -134,5 +135,8 @@ if st.button("Generar info_engine"):
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
+
+
         except Exception as e:
             st.error(f"Error: {e}")
+            st.text(traceback.format_exc())

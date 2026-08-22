@@ -3,15 +3,33 @@ import re
 
 
 def normalizar(texto):
+
     if texto is None:
         return ""
+
     texto = str(texto).upper().strip()
+
+    # Quitar tildes
     texto = re.sub(r'[ÁÀÄÂ]', 'A', texto)
     texto = re.sub(r'[ÉÈËÊ]', 'E', texto)
     texto = re.sub(r'[ÍÌÏÎ]', 'I', texto)
     texto = re.sub(r'[ÓÒÖÔ]', 'O', texto)
     texto = re.sub(r'[ÚÙÜÛ]', 'U', texto)
-    return texto
+
+    # Normalizar espacios
+    texto = re.sub(r'\s+', ' ', texto)
+
+    # Singular / plural simple
+    palabras = []
+
+    for palabra in texto.split():
+
+        if palabra.endswith("S") and len(palabra) > 4:
+            palabra = palabra[:-1]
+
+        palabras.append(palabra)
+
+    return " ".join(palabras)
 
 
 def MicMac_Datos(archivo_micmac, wb):

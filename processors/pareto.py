@@ -1,7 +1,33 @@
 import pandas as pd
 from openpyxl import load_workbook
+import unicodedata
+import re
 
+def normalizar_descriptor(texto):
+    if texto is None:
+        return ""
 
+    texto = str(texto).strip().upper()
+
+    # Quitar tildes
+    texto = "".join(
+        c for c in unicodedata.normalize("NFD", texto)
+        if unicodedata.category(c) != "Mn"
+    )
+
+    # Normalizar espacios
+    texto = re.sub(r"\s+", " ", texto)
+
+    # Singular/plural simple
+    palabras = []
+
+    for palabra in texto.split():
+        if palabra.endswith("S") and len(palabra) > 4:
+            palabra = palabra[:-1]
+
+        palabras.append(palabra)
+
+    return " ".join(palabras)    
 # -----------------------------
 # PROCESAR PARETO
 # -----------------------------
@@ -181,10 +207,12 @@ def escribir_frecuencias_problematicas(df_desglose, ws_hoja1):
             if not problema:
                 continue
 
+            problema_normalizado = normalizar_descriptor(problema)
+
             filtro = df_desglose[
-                df_desglose[col_descriptor].astype(str).str.strip().str.upper() ==
-                str(problema).strip().upper()
-            ]
+                df_desglose[col_descriptor].apply(normalizar_descriptor)
+                == problema_normalizado
+            ]    
 
             if filtro.empty:
                 continue

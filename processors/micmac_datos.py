@@ -174,33 +174,69 @@ def MicMac_Datos(archivo_micmac, wb):
     # 7. PROCESAMIENTO FINAL
     # =============================
     for idx_linea, problemas_linea_norm in enumerate(problemas_engine_por_linea):
-
+    
         if idx_linea >= len(columnas_destino):
             break
-
+    
         col_destino = columnas_destino[idx_linea]
         influyentes = []
-
-        # recorrer encabezados de la matriz
-        for idx_col, problema_header in enumerate(encabezados):
-
-            problema_largo = mapa_desc.get(problema_header, problema_header)
-
-            if normalizar(problema_largo) not in problemas_linea_norm:
+    
+        # -------------------------------------------------
+        # BUSCAR CADA PROBLEMÁTICA EN LA FILA DE LA MATRIZ
+        # -------------------------------------------------
+        for problema in problemas_linea_norm:
+    
+            # Buscar dónde está la problemática en los encabezados
+            idx_problema = None
+    
+            for idx, encabezado in enumerate(encabezados):
+    
+                problema_largo = mapa_desc.get(
+                    encabezado,
+                    encabezado
+                )
+    
+                if normalizar(problema_largo) == problema:
+                    idx_problema = idx
+                    break
+    
+            if idx_problema is None:
                 continue
-
-            # buscar influencias
-            for i in range(size):
-                valor = matriz.iloc[i, idx_col]
-
-                if valor in [2, 3]:
-                    problema_corto = problemas_fila[i]
-                    problema_largo_inf = mapa_desc.get(problema_corto, problema_corto)
+    
+            # -------------------------------------------------
+            # BUSCAR INFLUENCIAS EN LA FILA
+            # -------------------------------------------------
+            for idx_col in range(size):
+    
+                valor = matriz.iloc[idx_problema, idx_col]
+    
+                try:
+                    valor = float(valor)
+                except (TypeError, ValueError):
+                    continue
+    
+                # Solo relaciones 2 o 3
+                if valor in (2, 3):
+    
+                    problema_corto = problemas_fila[idx_col]
+    
+                    problema_largo_inf = mapa_desc.get(
+                        str(problema_corto).strip(),
+                        problema_corto
+                    )
+    
                     influyentes.append(problema_largo_inf)
-
-        # eliminar duplicados
+    
+        # -------------------------------------------------
+        # ELIMINAR DUPLICADOS
+        # -------------------------------------------------
         influyentes = list(dict.fromkeys(influyentes))
-
-        # escribir máximo 30
+    
+        # -------------------------------------------------
+        # ESCRIBIR MÁXIMO 30
+        # -------------------------------------------------
         for i, val in enumerate(influyentes[:30]):
-            hoja_engine[f"{col_destino}{247 + i}"] = val
+    
+            hoja_engine[
+                f"{col_destino}{247 + i}"
+            ] = val

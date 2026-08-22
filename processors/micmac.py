@@ -70,6 +70,7 @@ def obtener_problematicas():
         "SUSTRACCION DE UNA PERSONA MENOR DE EDAD O INCAPAZ",
         "TENTATIVA DE HOMICIDIO",
         "TERRORISMO",
+        "TALA ILEGAL",
         "TRAFICO DE ARMAS",
         "TRAFICO DE INFLUENCIAS",
         "TRATA DE PERSONAS",

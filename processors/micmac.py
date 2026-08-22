@@ -104,6 +104,7 @@ def obtener_problematicas():
         "BAJOS SALARIOS",
         "BARRAS DE FUTBOL",
         "BUNKER (EJE DE EXPENDIO DE DROGAS)",
+        "PUNTOS DE VENTA Y CONSUMO DE DROGAS",
         "CONSUMO DE ALCOHOL EN VIA PUBLICA",
         "CONSUMO DE DROGAS",
         "CONTAMINACION SONICA",

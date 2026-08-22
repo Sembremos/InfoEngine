@@ -1,5 +1,16 @@
 import pandas as pd
+import unicodedata
 
+def normalizar_texto(texto):
+    texto = str(texto).strip().upper()
+
+    return "".join(
+        c for c in unicodedata.normalize("NFD", texto)
+        if unicodedata.category(c) != "Mn"
+    )
+
+
+def procesar_metas(wb):
 
 def procesar_metas(wb):
     hoja = wb["Hoja1"]
@@ -22,7 +33,7 @@ def procesar_metas(wb):
         nombre = hoja2[f"A{fila}"].value
         cod = hoja2[f"B{fila}"].value
 
-        if nombre and str(nombre).strip().upper() == canton.upper():
+        if nombre and normalizar_texto(nombre) == normalizar_texto(canton):
             codigo = str(cod).strip()
             break
 

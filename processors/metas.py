@@ -11,8 +11,6 @@ def normalizar_texto(texto):
 
 
 def procesar_metas(wb):
-
-def procesar_metas(wb):
     hoja = wb["Hoja1"]
     hoja2 = wb["Hoja2"]
 

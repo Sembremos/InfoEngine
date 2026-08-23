@@ -27,7 +27,11 @@ def normalizar_descriptor(texto):
 
         palabras.append(palabra)
 
-    return " ".join(palabras)    
+    return " ".join(palabras)
+
+EQUIVALENCIAS_PARETO = {
+    "FALTA DE OPORTUNIDADES LABORALES": "DESEMPLEO",
+}
 # -----------------------------
 # PROCESAR PARETO
 # -----------------------------
@@ -209,10 +213,16 @@ def escribir_frecuencias_problematicas(df_desglose, ws_hoja1):
 
             problema_normalizado = normalizar_descriptor(problema)
 
+            # Buscar equivalencia si existe
+            problema_busqueda = EQUIVALENCIAS_PARETO.get(
+                problema_normalizado,
+                problema_normalizado
+            )
+            
             filtro = df_desglose[
                 df_desglose[col_descriptor].apply(normalizar_descriptor)
-                == problema_normalizado
-            ]    
+                == problema_busqueda
+            ]  
 
             if filtro.empty:
                 continue
